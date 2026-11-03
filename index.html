@@ -1,0 +1,3140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ASD">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <title>ASD – Assistant Sport Dietitian v3.1</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { 50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand: #059669;
+            --brand-dark: #047857;
+            --brand-light: #d1fae5;
+        }
+        * { font-family: 'Inter', system-ui, sans-serif; }
+
+        /* Active tab */
+        .active-tab {
+            background: linear-gradient(135deg, #059669, #047857) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 2px 8px rgba(5,150,105,0.35);
+        }
+        .active-tab i { color: #a7f3d0 !important; }
+
+        /* Tab hover */
+        .tab-btn:not(.active-tab):hover {
+            background-color: #f0fdf4;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        /* Smooth transitions */
+        .tab-content { animation: fadeIn 0.18s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Scrollbar styling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Range input */
+        input[type=range] { accent-color: #059669; }
+
+        /* Cards */
+        .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+        .card-dark { background: linear-gradient(135deg, #0f172a, #064e3b); border-radius: 16px; border: 1px solid rgba(6,95,70,0.5); }
+
+        /* Stat tiles */
+        .stat-tile { background: white; border-radius: 14px; border: 1px solid #e2e8f0; padding: 12px 16px; }
+
+        /* Form inputs */
+        input[type=text], input[type=number], select, textarea {
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #059669 !important;
+            box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+        }
+
+        /* Buttons */
+        .btn-primary { background: linear-gradient(135deg, #059669, #047857); color: white; font-weight: 700; border-radius: 10px; padding: 8px 16px; font-size: 0.75rem; transition: all 0.15s; box-shadow: 0 1px 4px rgba(5,150,105,0.3); }
+        .btn-primary:hover { background: linear-gradient(135deg, #047857, #065f46); box-shadow: 0 2px 8px rgba(5,150,105,0.4); transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* Print */
+        @media print {
+            nav, header, footer, button, .no-print { display: none !important; }
+            .tab-content { display: block !important; }
+            body { background: white !important; }
+        }
+
+        /* Chip buttons in visit tab */
+        [data-chip] {
+            background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;
+            font-size: 0.7rem; font-weight: 600; border-radius: 8px;
+            padding: 4px 10px; cursor: pointer; transition: all 0.12s;
+        }
+        [data-chip]:hover { background: #ede9fe; border-color: #a5b4fc; color: #3730a3; }
+        [data-chip].selected { background: #4f46e5; border-color: #4f46e5; color: white; }
+        [data-chip^="remove"].selected { background: #dc2626; border-color: #dc2626; }
+
+        /* Gradient header nav bg */
+        .nav-gradient { background: linear-gradient(to right, #ffffff, #f0fdf4); }
+
+        /* Mobile bottom spacer */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 12px); }
+    </style>
+
+    <!-- PDF.js for Tanita extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+<!-- ═══════════════════════ HEADER ═══════════════════════ -->
+<header class="no-print" style="background: linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #065f46 100%); border-bottom: 1px solid rgba(16,185,129,0.2);">
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+        <!-- Logo + Title -->
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);">
+                <i class="fa-solid fa-bolt-lightning text-emerald-400 text-lg"></i>
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-white font-black text-lg tracking-tight leading-none">ASD</h1>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3);">v3.1 Pro</span>
+                </div>
+                <p class="text-emerald-300/70 text-[11px] mt-0.5 hidden sm:block">Assistant Sport Dietitian · Borg sRPE · Klinik Portal</p>
+            </div>
+        </div>
+
+        <!-- Client quick info -->
+        <div class="flex items-center gap-3 bg-white/8 backdrop-blur border border-white/10 rounded-xl px-4 py-2 min-w-0 flex-shrink" style="background: rgba(255,255,255,0.06);">
+            <i class="fa-solid fa-user-doctor text-emerald-400 text-sm flex-shrink-0"></i>
+            <div class="min-w-0">
+                <p id="top-client-name" class="font-bold text-white text-sm truncate leading-tight">Danışan Seçilmedi</p>
+                <p id="top-summary-text" class="text-slate-400 text-[11px] truncate">TEE: – · CHO: – · Protein: –</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ═══════════════════════ NAV TABS ═══════════════════════ -->
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-screen-2xl mx-auto px-3 sm:px-5 py-2 flex overflow-x-auto no-scrollbar gap-1.5">
+        <button onclick="switchTab('cl')" id="nav-cl" class="tab-btn active-tab px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-users text-sm"></i> <span class="hidden sm:inline">1.</span> Danışan
+        </button>
+        <button onclick="switchTab('en')" id="nav-en" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-calculator text-sm"></i> <span class="hidden sm:inline">2.</span> Biyometri & sRPE
+        </button>
+        <button onclick="switchTab('dg')" id="nav-dg" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-utensils text-sm"></i> <span class="hidden sm:inline">3.</span> Menü & Analiz
+        </button>
+        <button onclick="switchTab('hy')" id="nav-hy" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-droplet text-sm"></i> <span class="hidden sm:inline">4.</span> Hidrasyon
+        </button>
+        <button onclick="switchTab('pr')" id="nav-pr" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-dna text-sm"></i> <span class="hidden sm:inline">5.</span> Protein & MPS
+        </button>
+        <button onclick="switchTab('sp')" id="nav-sp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-award text-sm"></i> <span class="hidden sm:inline">6.</span> Ergojenikler
+        </button>
+        <button onclick="switchTab('drive')" id="nav-drive" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-brands fa-google-drive text-sm"></i> <span class="hidden sm:inline">7.</span> Drive
+        </button>
+        <button onclick="switchTab('rp')" id="nav-rp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-file-pdf text-sm"></i> <span class="hidden sm:inline">8.</span> Rapor & PDF
+        </button>
+        <button onclick="switchTab('fh')" id="nav-fh" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-book-medical text-sm"></i> <span class="hidden sm:inline">9.</span> Rehber
+        </button>
+        <button onclick="switchTab('vs')" id="nav-vs" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-clock-rotate-left text-sm"></i> <span class="hidden sm:inline">10.</span> Görüşmeler
+        </button>
+        <button onclick="switchTab('supp')" id="nav-supp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">11.</span> Supp. Protokol
+        </button>
+    </div>
+</nav>
+
+<!-- ═══════════════════════ MAIN CONTENT ═══════════════════════ -->
+<main id="main" class="flex-1 max-w-screen-2xl mx-auto w-full px-3 sm:px-5 py-5 space-y-0">
+
+    <!-- ▸ TAB 1: DANIŞAN KAYITLARI -->
+    <section id="tab-cl" class="tab-content space-y-5">
+
+        <!-- Tanita BIA Panel -->
+        <div class="card-dark p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-emerald-800/40 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-waveform text-emerald-400 text-base"></i>
+                    <p class="font-bold text-sm text-emerald-300">Tanita / BIA Raporundan Otomatik Veri Aktarımı</p>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25);">İsteğe Bağlı · OCR</span>
+            </div>
+            <p class="text-[11px] text-slate-300">Tanita / BIA cihazından aldığınız <b class="text-white">PDF raporunu</b> veya kopyaladığınız metni yükleyin. Tüm veriler otomatik ayıklanıp sekmelere işlenir.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);" class="p-3 rounded-xl space-y-1.5">
+                    <label class="text-[11px] font-bold text-teal-300">📄 PDF Yükle</label>
+                    <input type="file" id="tanita_pdf_input" accept=".pdf,image/*" class="block w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400 cursor-pointer">
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);" class="p-3 rounded-xl space-y-1.5">
+                    <label class="text-[11px] font-bold text-teal-300">📝 Metin Yapıştır</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="tanita_text_input" placeholder="BIA metin verisini yapıştırın..." class="flex-1 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);color:white;">
+                        <button id="btn_parse_tanita_text" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition">Çözümle</button>
+                    </div>
+                </div>
+            </div>
+            <div id="bia_summary_card" class="hidden"></div>
+            <div id="tanita_status_msg" class="text-[11px] font-semibold text-emerald-300 min-h-[16px]"></div>
+        </div>
+
+        <!-- Form + Manuel panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <!-- Google Form -->
+            <div class="lg:col-span-2 card-dark p-5 space-y-3">
+                <div class="flex items-center justify-between border-b border-emerald-800/40 pb-2.5">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-down text-amber-400 text-sm"></i>
+                        <p class="font-bold text-xs text-emerald-300">Google Form Yanıtlarını Direkt Çek</p>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(251,191,36,0.15);color:#fcd34d;border:1px solid rgba(251,191,36,0.25);">Canlı Entegrasyon</span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="sheet_webapp_url" value="https://script.google.com/macros/s/AKfycbxwskYj5nKpau9mQGKTsVwXxSrWJTlrb1Rt88heGPWLjfgSq6p03jYQMSjOAPDWzeNQGA/exec" placeholder="Google Apps Script Web App URL..." class="flex-1 rounded-xl px-3 py-2 text-xs focus:outline-none" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.15);color:white;">
+                    <button id="btn_fetch_form_responses" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-sync"></i> Yanıtları Çek
+                    </button>
+                </div>
+                <div id="form_select_container" class="hidden space-y-1">
+                    <label class="text-[11px] font-bold text-amber-300">Form Dolduran Danışanı Seçin:</label>
+                    <select id="form_client_select" class="w-full rounded-xl p-2 text-xs font-semibold focus:outline-none" style="background:rgba(0,0,0,0.4);border:1px solid rgba(251,191,36,0.4);color:white;">
+                        <option value="">-- Danışan Seçiniz --</option>
+                    </select>
+                </div>
+                <div id="fetch_status_msg" class="text-[11px] font-semibold text-emerald-300 min-h-[16px]"></div>
+            </div>
+            <!-- Manuel giriş -->
+            <div class="card p-5 flex flex-col justify-between border-l-4 border-indigo-400">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-user-pen text-indigo-600"></i>
+                        <p class="font-bold text-sm text-slate-800">Formsuz / Manuel Giriş</p>
+                    </div>
+                    <p class="text-xs text-slate-500">Form doldurmayan danışanlar için <b>Ad Soyad</b> yazıp <b>Kaydet & 2. Adıma Geç</b> yeterli. Form zorunlu değildir.</p>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-emerald-700 font-bold">
+                    <i class="fa-solid fa-circle-check text-emerald-500"></i> Form Zorunluluğu Yoktur
+                </div>
+            </div>
+        </div>
+
+        <!-- Danışan Profil + Liste -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- Profil kartı -->
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-emerald-600"></i> Danışan Profili
+                </h2>
+                <input type="hidden" id="cid">
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Ad Soyad</label>
+                        <input type="text" id="cn" placeholder="Örn: Ennur Yılmaz" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Telefon / E-posta</label>
+                            <input type="text" id="cphone" placeholder="05xx..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Danışan No</label>
+                            <input type="text" id="ckod" readonly placeholder="Otomatik" class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2.5 text-sm font-mono text-slate-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Cinsiyet</label>
+                            <select id="cn_sx" onchange="if($('sx')){$('sx').value=this.value; calc();}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                                <option value="1">Kadın</option>
+                                <option value="0">Erkek</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Hedef</label>
+                            <select id="cg2" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                                <option value="Performans">Performans</option>
+                                <option value="Kilo ver">Definasyon</option>
+                                <option value="Kilo al">Hipertrofi</option>
+                                <option value="Koru">Koruma</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Branş</label>
+                            <input type="text" id="cnt_sport" placeholder="Futbol..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Klinik Ön Değerlendirme</label>
+                        <textarea id="cnt" rows="2" placeholder="Müsabaka dönemi, hidrasyon takibi..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"></textarea>
+                    </div>
+                    <!-- Belgeler -->
+                    <div class="border-t border-slate-100 pt-3 space-y-2">
+                        <label class="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip text-emerald-600"></i> Belgeler (Kan tahlili, BIA, PDF…)</span>
+                            <span class="text-[10px] text-slate-400 font-normal">İsteğe bağlı</span>
+                        </label>
+                        <input type="file" id="client_file_input" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                        <div id="client_files_list" class="space-y-1.5 text-xs max-h-32 overflow-y-auto">
+                            <p class="text-slate-400 text-[11px] italic">Henüz belge yok.</p>
+                        </div>
+                    </div>
+                    <!-- Butonlar -->
+                    <div class="pt-1 flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                        <button id="cs" class="flex-1 btn-primary flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i> Kaydet & 2. Adıma Geç
+                        </button>
+                        <button onclick="switchTab('en')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-3 py-2 rounded-xl border border-indigo-200 transition flex items-center gap-1">
+                            2. Adım <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                        <button id="cnw" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3 py-2 rounded-xl border border-slate-200 transition">
+                            <i class="fa-solid fa-plus"></i> Yeni
+                        </button>
+                        <button id="cdd" class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-xs px-3 py-2 rounded-xl border border-amber-200 transition" title="Mükerrerleri birleştir">
+                            <i class="fa-solid fa-clone"></i>
+                        </button>
+                    </div>
+                    <p id="cmsg" class="text-xs text-emerald-700 font-medium min-h-[18px]"></p>
+                </div>
+            </div>
+
+            <!-- Kayıtlı danışan listesi -->
+            <div class="lg:col-span-2 card p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-address-book text-emerald-600"></i> Kayıtlı Danışanlar
+                    </h2>
+                    <span class="text-xs text-slate-400">Tarayıcı & Drive yedeği</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <th class="p-3">Danışan & Branş</th>
+                                <th class="p-3">Hedef</th>
+                                <th class="p-3">Kilo Geçmişi</th>
+                                <th class="p-3 text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cl_l" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="4" class="p-6 text-center text-slate-400 text-xs">Henüz kayıtlı danışan yok.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 2: BİYOMETRİ & sRPE -->
+    <section id="tab-en" class="tab-content hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- Biyometrik Veriler -->
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-emerald-600"></i> Biyometrik Veriler & RMR
+                </h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Cinsiyet</label>
+                        <select id="sx" onchange="if($('cn_sx')){$('cn_sx').value=this.value;} calc();" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                            <option value="1">Kadın</option>
+                            <option value="0">Erkek</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Yaş</label>
+                        <input type="number" id="ya" value="20" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Ağırlık (kg)</label>
+                        <input type="number" step="0.1" id="kg" value="50.6" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Boy (cm)</label>
+                        <input type="number" id="cm" value="162" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-semibold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Vücut Yağı (%)</label>
+                        <input type="number" step="0.5" id="bf" value="24.0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">RMR Formülü</label>
+                        <select id="eq" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                            <option value="0">Mifflin-St Jeor</option>
+                            <option value="1">Cunningham (FFM)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Aktivite Faktörü (PAL)</label>
+                        <input type="number" step="0.05" id="pal" value="1.50" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Enerji Ayarı (kcal)</label>
+                        <input type="number" step="50" id="adj" value="500" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm">
+                    </div>
+                </div>
+                <!-- Özet -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-500">Yağsız Kütle (FFM):</span><b id="ffm" class="text-slate-800">38.5 kg</b></div>
+                    <div class="flex justify-between"><span class="text-slate-500">RMR (Mifflin):</span><b id="mif">1258 kcal</b></div>
+                    <div class="flex justify-between"><span class="text-slate-500">RMR (Cunningham):</span><b id="cun">1347 kcal</b></div>
+                    <div class="flex justify-between border-t pt-2 mt-1">
+                        <span class="font-bold text-emerald-800 text-sm">Hedef Enerji (TEE):</span>
+                        <b id="tee" class="text-emerald-700 text-base font-black">2386 kcal</b>
+                    </div>
+                </div>
+                <!-- BIA Branş Referans Önerileri -->
+                <div id="bia-sport-ref" class="hidden bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-xs space-y-2">
+                    <p class="font-black text-indigo-900 text-[11px] uppercase tracking-wide flex items-center gap-1.5"><i class="fa-solid fa-dna text-indigo-600"></i> BIA Referans Değerleri — <span id="bia-sport-label" class="normal-case font-bold"></span></p>
+                    <div id="bia-sport-content" class="space-y-1.5"></div>
+                </div>
+            </div>
+
+            <!-- sRPE + Makro -->
+            <div class="lg:col-span-2 space-y-5">
+                <!-- Borg sRPE -->
+                <div class="card p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-3">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-heart-pulse text-rose-600"></i> Seans Yükü (Borg 6–20 sRPE)
+                        </h2>
+                        <span class="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-200 w-fit">HR ≈ Borg × 10 bpm</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Süre (Dakika)</label>
+                            <input type="number" id="dur" value="90" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-base font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tahmini Kalp Hızı</label>
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex justify-between items-center">
+                                <span id="srpe_hr" class="text-lg font-black text-rose-600">140 bpm</span>
+                                <span class="text-xs text-slate-400">Borg × 10</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-slate-700">Algılanan Zorluk (Borg 6–20):</label>
+                            <div class="flex items-center gap-2">
+                                <span id="borg-val-num" class="text-xl font-black text-emerald-600 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">14</span>
+                                <span id="borg-val-text" class="text-xs font-bold px-3 py-1 rounded-lg bg-amber-100 text-amber-800">Biraz Zor - Zor</span>
+                            </div>
+                        </div>
+                        <input type="range" id="brg" min="6" max="20" value="14" step="1" class="w-full h-2.5 rounded-lg appearance-none cursor-pointer">
+                        <div class="grid grid-cols-5 text-[10px] text-center text-slate-400 font-medium">
+                            <div><b>6–9</b><br>Hiç/Hafif</div>
+                            <div><b>10–12</b><br>Hafif-Orta</div>
+                            <div><b>13–14</b><br>Biraz Zor</div>
+                            <div><b>15–16</b><br>Zor</div>
+                            <div><b>17–20</b><br>Çok Zor</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-slate-900 text-white p-4 rounded-xl text-center">
+                            <p class="text-[11px] text-slate-400 uppercase font-bold">sRPE Skoru</p>
+                            <p id="srpe" class="text-2xl font-black text-emerald-400 mt-1">1260</p>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+                            <p class="text-[11px] text-emerald-800 uppercase font-bold">Yük Kategorisi</p>
+                            <p id="srpe_cat" class="text-xs font-bold text-emerald-900 mt-1">Yüksek Şiddet</p>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-center flex flex-col justify-between">
+                            <div>
+                                <p class="text-[11px] text-indigo-800 uppercase font-bold">CHO & PAL Önerisi</p>
+                                <p id="srpe_rec" class="text-xs font-bold text-indigo-900 mt-0.5">7–10 g/kg · PAL ~1.8</p>
+                            </div>
+                            <button id="btn_srpe_apply" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] py-1.5 rounded-lg transition">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Öneriyi Aktar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Makro hedefleri -->
+                <div class="card p-6 space-y-4">
+                    <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-emerald-600"></i> Makro Besin Hedefleri
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">CHO Bandı (ACSM / UEFA)</label>
+                            <select id="cb" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                                <option value="0">Hafif / Teknik (3–5 g/kg)</option>
+                                <option value="1" selected>Orta (~1 sa/gün) (5–7 g/kg)</option>
+                                <option value="2">Yüksek (1–3 sa/gün) (6–10 g/kg)</option>
+                                <option value="3">Çok Yüksek (>4–5 sa/gün) (8–12 g/kg)</option>
+                                <option value="4">Yükleme (36–48 sa öncesi) (10–12 g/kg)</option>
+                                <option value="5">UEFA: Antrenman Günü (3–6 g/kg)</option>
+                                <option value="6">UEFA: MD-1 / MD / MD+1 (6–8 g/kg)</option>
+                                <option value="7">UEFA: Sezon Dışı (&lt;4 g/kg)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Karbonhidrat (g/kg)</label>
+                            <input type="number" step="0.1" id="cg" value="6.0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-emerald-700">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Protein Bandı</label>
+                            <select id="pb" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                                <option value="0">Genel İdame (1.2–1.6 g/kg)</option>
+                                <option value="1" selected>Antrenman / Güç (1.6–2.2 g/kg)</option>
+                                <option value="2">Enerji Kısıtı / Definasyon (2.0–2.4 g/kg)</option>
+                                <option value="3">Sıkı Kısıt (2.3–3.1 g/kg)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Protein (g/kg)</label>
+                            <input type="number" step="0.1" id="pg" value="1.9" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold text-indigo-700">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                            <p class="text-emerald-800 font-semibold text-[11px]">CHO Hedefi</p>
+                            <p id="c1" class="text-base font-black text-emerald-900 mt-0.5">304 g</p>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                            <p class="text-indigo-800 font-semibold text-[11px]">Protein Hedefi</p>
+                            <p id="p1" class="text-base font-black text-indigo-900 mt-0.5">96 g</p>
+                        </div>
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                            <p class="text-amber-800 font-semibold text-[11px]">Yağ (Kalan)</p>
+                            <p id="f1" class="text-base font-black text-amber-900 mt-0.5">87 g</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <p class="text-slate-600 font-semibold text-[11px]">Makro Enerji</p>
+                            <p id="ms" class="text-base font-black text-slate-800 mt-0.5">2386 kcal</p>
+                        </div>
+                    </div>
+                    <div id="mw"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 3: MENÜ PLANLAMA -->
+    <section id="tab-dg" class="tab-content hidden space-y-5">
+        <!-- Banner -->
+        <div class="card-dark p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div class="space-y-1">
+                <p class="font-bold text-xs text-emerald-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Dışarıda Yazılan Menüleri Denetleme Rehberi
+                </p>
+                <p class="text-[11px] text-slate-300">Word, Notion, Excel veya WhatsApp'ta hazırlanan menüyü yapıştırın; sRPE yük, kalori dengesi, MPS ve klinik kontrol listesi açısından denetleyin.</p>
+            </div>
+            <button id="btn_audit_now" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> Yapıştırılan Menüyü Denetle
+            </button>
+        </div>
+
+        <!-- Buton barı -->
+        <div class="card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-emerald-600"></i> Menü Planlama & Porsiyonlama
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Değişim sayılarını girin. Tabloyu değiştirdikçe yazılı menü otomatik güncellenir.</p>
+                <p id="sample_variant_label" class="text-[11px] text-indigo-600 font-semibold mt-0.5"></p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button id="btn_sample_menu" class="btn-primary flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Örnek Dağıtım
+                </button>
+                <button id="btn_fill_sample_text_menu" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square"></i> Örnek Şablon
+                </button>
+            </div>
+        </div>
+
+        <!-- Menü önerileri -->
+        <div class="card p-4 space-y-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-shuffle text-indigo-600"></i> Menü Önerileri
+                    <span class="font-normal text-slate-400 text-[11px]">— bastıkça besinler değişir, değişim sayıları aynı kalır</span>
+                </span>
+                <button type="button" id="btn_shuffle_all" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-dice"></i> Tüm Menüyü Değiştir
+                </button>
+            </div>
+            <div class="flex flex-wrap gap-2" id="shuffle_meals">
+                <button type="button" data-meal="0" class="shuf bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Kahvaltı</button>
+                <button type="button" data-meal="1" class="shuf bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Ara 1</button>
+                <button type="button" data-meal="2" class="shuf bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Öğle</button>
+                <button type="button" data-meal="3" class="shuf bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Ara 2</button>
+                <button type="button" data-meal="4" class="shuf bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Akşam</button>
+                <button type="button" data-meal="5" class="shuf bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Ara 3</button>
+            </div>
+            <div id="shuffle_msg" class="text-[11px] font-semibold text-indigo-600 min-h-[16px]"></div>
+        </div>
+
+        <!-- Değişim tablosu -->
+        <div class="card p-5 space-y-4">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                            <th class="p-3 min-w-[160px]">Grup</th>
+                            <th class="p-3 text-center">Kahvaltı</th>
+                            <th class="p-3 text-center">Ara 1</th>
+                            <th class="p-3 text-center">Öğle</th>
+                            <th class="p-3 text-center">Ara 2</th>
+                            <th class="p-3 text-center">Akşam</th>
+                            <th class="p-3 text-center">Ara 3</th>
+                            <th class="p-3 text-right">Toplam</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exchange-tbody" class="divide-y divide-slate-100 text-slate-800"></tbody>
+                    <tfoot>
+                        <tr class="bg-slate-900 text-white font-bold">
+                            <td class="p-3 text-xs">MENÜ TOPLAMI</td>
+                            <td colspan="6" class="p-3 text-right text-xs font-normal text-slate-400">CHO / Protein / Yağ / Enerji:</td>
+                            <td id="menu-total-summary" class="p-3 text-right text-emerald-400 font-black text-sm">0 kcal</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <p class="text-[11px] text-slate-400 border-t pt-2">
+                <i class="fa-solid fa-circle-info text-emerald-600"></i> Süt ürünleri pastörize/UHT olmalıdır. <b>Protein Powder</b> gram olarak girilmektedir.
+            </p>
+        </div>
+
+        <!-- Hedef vs Menü -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="card p-4 text-center"><p class="text-[11px] text-slate-500 font-bold uppercase">Enerji (kcal)</p><p id="d1" class="text-sm font-black text-slate-800 mt-1">0 / 0</p></div>
+            <div class="card p-4 text-center"><p class="text-[11px] text-emerald-700 font-bold uppercase">CHO (g)</p><p id="d2" class="text-sm font-black text-emerald-800 mt-1">0 / 0</p></div>
+            <div class="card p-4 text-center"><p class="text-[11px] text-indigo-700 font-bold uppercase">Protein (g)</p><p id="d3" class="text-sm font-black text-indigo-800 mt-1">0 / 0</p></div>
+            <div class="card p-4 text-center"><p class="text-[11px] text-amber-700 font-bold uppercase">Yağ (g)</p><p id="d4" class="text-sm font-black text-amber-800 mt-1">0 / 0</p></div>
+            <div class="card p-4 text-center col-span-2 sm:col-span-1"><p class="text-[11px] text-slate-500 font-bold uppercase">C/P/Y Oranı</p><p id="d5" class="text-sm font-black text-slate-800 mt-1">%0 / %0 / %0</p></div>
+        </div>
+
+        <!-- MPS Analizi -->
+        <div class="card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-dna text-indigo-600"></i> Öğün Protein & MPS Tetiklenme Analizi
+                </h2>
+                <span id="mps-target-badge" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200">Hedef: ~12.7g – 20.2g P/öğün</span>
+            </div>
+            <div id="meal-protein-breakdown" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"></div>
+        </div>
+
+        <!-- Klinik değerlendirme -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check text-emerald-600"></i> Otomatik Menü Değerlendirmesi
+                </h2>
+                <div id="eval-container" class="space-y-3"></div>
+            </div>
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-eye text-amber-600"></i> Klinik Kontrol Listesi
+                </h2>
+                <div id="clinical-checklist" class="space-y-2.5 text-xs"></div>
+            </div>
+        </div>
+
+        <!-- Yazılı menü + notlar -->
+        <div class="card p-6 space-y-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-3 gap-2">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-file-signature text-teal-600"></i> Yazılı Menü & Klinik Notlar
+                </h2>
+                <span class="text-xs text-slate-400">Rapor ve Drive yedeğine otomatik eklenir</span>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 flex justify-between items-center">
+                        <span><i class="fa-solid fa-utensils text-emerald-600"></i> Danışana Verilecek Yazılı Diyet</span>
+                        <button type="button" id="btn_menu_rewrite" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[11px] px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-rotate"></i> Tablodan yeniden yaz</button>
+                    </label>
+                    <div id="menu_sync_msg" class="text-[11px] font-semibold min-h-[16px] text-emerald-700"></div>
+                    <textarea id="written_menu" rows="12" placeholder="Örn:&#10;KAHVALTI: 08.00 - 09.00&#10;2 adet yumurtalı omlet&#10;2 dilim tam buğday ekmeği&#10;...&#10;&#10;ÖĞLE: 13.00 - 14.00&#10;..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono"></textarea>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700">
+                        <i class="fa-solid fa-notes-medical text-indigo-600"></i> Diyetisyen Klinik Notları (Dahili)
+                    </label>
+                    <textarea id="client_notes" rows="12" placeholder="Ferritin düşük – C vitamini ile demir takviyesi...&#10;Yarış haftası lif kısıtlanacak..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono"></textarea>
+                </div>
+            </div>
+            <!-- PDF Notlar sayfası -->
+            <div class="space-y-2 pt-3 border-t border-slate-100">
+                <label class="block text-xs font-bold text-slate-700 flex justify-between items-center flex-wrap gap-1">
+                    <span><i class="fa-solid fa-file-lines text-rose-500"></i> PDF "Notlar" Sayfası (Danışana Verilecek)</span>
+                    <span class="text-[10px] font-normal text-slate-400">Öneri gelir · düzeltirseniz korunur · Boşsa PDF'e eklenmez</span>
+                </label>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="btn_notes_suggest" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[11px] px-2.5 py-1 rounded-lg transition">
+                        <i class="fa-solid fa-lightbulb"></i> Öneriden yeniden yaz
+                    </button>
+                    <span id="notes_msg" class="text-[11px] text-slate-500"></span>
+                </div>
+                <input type="hidden" id="pdf_notes_auto"><input type="hidden" id="menu_auto_last">
+                <textarea id="pdf_notes" rows="7" placeholder="Bu danışana özel notlar (standart not yoktur)...&#10;&#10;Örnek:&#10;Genel öneri satırı&#10;&#10;Başlık;&#10;Alt satır kırmızı olur" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed font-mono"></textarea>
+                <p class="text-[11px] text-slate-500">
+                    <b>PDF ipuçları:</b> Saatli/':' ile biten satır → altın başlık · Tek başına 'ya da' → mor ayırıcı · Notlar sayfasında ';' veya ':' biten satır → altın başlık, altı kırmızı · '#' zorla başlık · '!' zorla kırmızı
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 4: HİDRASYON -->
+    <section id="tab-hy" class="tab-content hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-droplet text-cyan-600"></i> Ter Oranı & Sıvı Kaybı Ölçümü
+                </h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Önceki Ağırlık (kg)</label><input type="number" step="0.1" id="h1" placeholder="51.2" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Sonraki Ağırlık (kg)</label><input type="number" step="0.1" id="h2" placeholder="50.4" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm font-bold"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">İçilen Sıvı (L)</label><input type="number" step="0.1" id="h3" placeholder="0.75" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">İdrar (L)</label><input type="number" step="0.1" id="h4" placeholder="0.0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Süre (saat)</label><input type="number" step="0.1" id="h5" placeholder="1.5" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm"></div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-500">Ter Hızı (Sweat Rate):</span><b id="hr" class="text-cyan-700 text-sm font-black">–</b></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Toplam Ter Kaybı:</span><b id="hl">–</b></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Net Ağırlık Kaybı:</span><b id="hd">–</b></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Ağırlık Kaybı (%):</span><b id="hp">–</b></div>
+                    <div class="flex justify-between border-t pt-2 font-bold"><span>Replasman Hedefi (%125–150):</span><b id="hx" class="text-emerald-700 text-sm font-black">–</b></div>
+                </div>
+                <div id="hw"></div>
+            </div>
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-glass-water text-emerald-600"></i> Seans İçi Hidrasyon Rehberi
+                </h2>
+                <div class="space-y-3 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200"><p class="font-bold text-slate-700">Seans Öncesi (≥4 sa önce):</p><p id="p1h" class="text-emerald-700 font-bold mt-0.5">250–350 mL</p></div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200"><p class="font-bold text-slate-700">İdrar Koyu ise (2 sa önce):</p><p id="p2h" class="text-emerald-700 font-bold mt-0.5">150–250 mL</p></div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200"><p class="font-bold text-slate-700">Seans İçi Sodyum:</p><p id="p3h" class="text-emerald-700 font-bold mt-0.5">0,5–0,7 g/L (Kramp: 1,5 g/L)</p></div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200"><p class="font-bold text-slate-700">Seans İçi CHO (>60 dk):</p><p id="p4h" class="text-emerald-700 font-bold mt-0.5">30–60 g/saat (>2.5 sa: 90 g/saat)</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 5: PROTEİN & MPS -->
+    <section id="tab-pr" class="tab-content hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-indigo-600"></i> Protein Bütçesi & Sirkadiyen Harita
+                </h2>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Günlük Protein Hedefi:</span><b id="q1" class="text-indigo-800 font-bold text-sm">96 g</b></div>
+                    <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Değişim Planından Gelen:</span><b id="q2" class="text-slate-800 font-bold">96 g</b></div>
+                    <div class="flex justify-between p-2.5 bg-indigo-50 rounded-xl text-indigo-900 border border-indigo-100"><span>└ Protein Powder:</span><b id="q2_pw" class="font-bold">28 g (35g powder)</b></div>
+                    <div class="flex justify-between p-2.5 bg-emerald-50 rounded-xl text-emerald-900 border border-emerald-100 font-bold"><span>Net Açık (İlave Takviye):</span><b id="q3" class="text-sm">0 g</b></div>
+                    <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Anabolik Eşik (0.25–0.4 g/kg):</span><b id="q4">12.7–20.2 g</b></div>
+                    <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Antrenman Sonrası (0.25–0.3 g/kg):</span><b id="q5">12.7–15.2 g</b></div>
+                    <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Uyku Öncesi Kazein (~0.4 g/kg):</span><b id="q6">20.2 g</b></div>
+                </div>
+                <div class="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 text-xs">
+                    <p class="font-bold text-indigo-900 flex items-center gap-1.5"><i class="fa-solid fa-clock text-indigo-600"></i> Sirkadiyen Protein Zamanlaması</p>
+                    <p class="text-indigo-950 leading-relaxed mt-1">MPS maksimumu için protein 3–5 saatte bir bölünmeli. Her ana öğünde en az <b>2.5–3.0g Lösin</b> eşiğine ulaşılmalıdır.</p>
+                </div>
+            </div>
+            <div class="card p-6 space-y-4">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-vial text-purple-600"></i> Takviye Dozajlama & Lösin Analizi
+                </h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ürün Tipi</label>
+                        <select id="pt" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+                            <option value="0">Whey Konsantre (%80)</option><option value="1">Whey İzolat (%90)</option><option value="2">Kazein (%80)</option><option value="3" selected>Bezelye İzolatı (%80)</option><option value="4">Yumurta Akı (%80)</option><option value="5">Soya İzolatı (%90)</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Protein Oranı (%)</label><input type="number" id="pp" value="80" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Lösin (g/100g)</label><input type="number" step="0.1" id="pl" value="8.0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ölçek (g)</label><input type="number" id="sc" value="30" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs"></div>
+                    <div><label class="block text-xs font-semibold text-slate-600 mb-1">İstenen Doz (g P)</label><input type="number" id="pd" value="25" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold"></div>
+                </div>
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between"><span>Ölçek Başı Protein:</span><b id="s1">24 g</b></div>
+                    <div class="flex justify-between"><span>Doz İçin Gereken Ürün:</span><b id="s2">1.0 ölçek (31 g)</b></div>
+                    <div class="flex justify-between"><span>Alınan Lösin:</span><b id="s3" class="text-purple-700 font-bold">2.5 g</b></div>
+                    <div class="flex justify-between border-t pt-1.5"><span>2.5g Lösin İçin Gereken:</span><b id="s4" class="text-emerald-700 font-bold">31 g protein</b></div>
+                </div>
+                <div class="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-900">
+                    <i class="fa-solid fa-circle-check text-purple-600"></i> <b>Kullanım:</b> Antrenman sonrası 300 mL su/bitkisel süt ile 1 ölçek.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 6: ERGOJENİKLER -->
+    <section id="tab-sp" class="tab-content hidden space-y-5">
+        <div class="card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-award text-amber-500"></i> AIS Grup A Kanıta Dayalı Ergojenikler
+                </h2>
+                <span class="text-xs bg-amber-50 text-amber-800 font-bold px-3 py-1 rounded-full border border-amber-200">
+                    Ağırlık: <span id="ais-kg-display">50.6</span> kg bazlı
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                            <th class="p-3 min-w-[130px]">Takviye</th>
+                            <th class="p-3 text-emerald-700 min-w-[150px]">Kişiye Özel Doz</th>
+                            <th class="p-3 min-w-[180px]">Protokol & Zamanlama</th>
+                            <th class="p-3">Mekanizma & İpuçları</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spt" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 7: DRIVE -->
+    <section id="tab-drive" class="tab-content hidden space-y-5">
+        <div class="card p-6 space-y-5">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-brands fa-google-drive"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">Google Drive Danışan Veri Senkronizasyonu</h2>
+                    <p class="text-xs text-slate-500">Kayıtlarınızı Google Drive'da bulut yedeği olarak saklayın.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Manuel yedek -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-file-export text-emerald-600"></i> Hızlı Drive Yedeği
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="xj_drive" class="btn-primary flex items-center gap-1.5">
+                            <i class="fa-solid fa-download"></i> Tüm Kayıtları İndir (JSON)
+                        </button>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">JSON Dosyasını Geri Yükle:</label>
+                        <input type="file" id="xf_drive" accept=".json,application/json" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                    </div>
+                    <div id="drive_msg" class="text-xs font-semibold text-emerald-700"></div>
+                </div>
+                <!-- Webhook sync -->
+                <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-200 space-y-4">
+                    <h3 class="font-bold text-sm text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-amber-600"></i> Otomatik Drive Sync
+                    </h3>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-amber-900">Apps Script Web App URL:</label>
+                        <input type="text" id="drive_webhook_url" placeholder="https://script.google.com/macros/s/..." class="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs">
+                    </div>
+                    <label class="flex items-center gap-2 text-xs font-semibold text-amber-900 cursor-pointer">
+                        <input type="checkbox" id="drive_auto_chk" checked class="rounded"> Değişiklikleri otomatik senkronize et
+                    </label>
+                    <button id="btn_sync_drive" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-sync"></i> Şimdi Senkronize Et
+                    </button>
+                    <div id="sync_status_msg" class="text-xs font-semibold text-amber-900"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 8: RAPOR & PDF -->
+    <section id="tab-rp" class="tab-content hidden space-y-5">
+        <div class="card p-6 space-y-4">
+            <!-- Başlık + Butonlar -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4 no-print">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-emerald-600"></i> Klinik Rapor & PDF Çıktısı
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn_gen_report" class="btn-primary flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrows-rotate"></i> Raporu Oluştur / Yenile
+                    </button>
+                    <button id="btn_diet_pdf" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" style="box-shadow: 0 2px 8px rgba(220,38,38,0.3);">
+                        <i class="fa-solid fa-file-pdf"></i> Diyet PDF'i İndir
+                    </button>
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> Yazdır
+                    </button>
+                </div>
+            </div>
+
+            <!-- PDF durum mesajı -->
+            <div id="diet_pdf_msg" class="text-xs font-semibold min-h-[20px] no-print px-1"></div>
+
+            <!-- Rapor alanı -->
+            <div id="rpt" class="p-6 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-4">
+                <p class="text-slate-400 text-center py-6">Rapor oluşturmak için "Raporu Oluştur" butonuna tıklayın.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 9: KLİNİK REHBER -->
+    <section id="tab-fh" class="tab-content hidden space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card p-6 space-y-3">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2">UEFA Karbonhidrat Rehberi</h2>
+                <table class="w-full text-xs text-left">
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Hazırlık Dönemi</td><td class="text-slate-600">4–8 g/kg/gün</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Sezon İçi (1 maç/hafta)</td><td class="text-slate-600">3–8 g/kg/gün</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Yoğun Fikstür (48–72 sa)</td><td class="text-slate-600">6–8 g/kg/gün</td></tr>
+                    <tr><td class="py-2 font-semibold text-slate-700">Sezon Dışı</td><td class="text-slate-600">&lt;4 g/kg/gün</td></tr>
+                </table>
+            </div>
+            <div class="card p-6 space-y-3">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2">Sıcak Ortam & Isı Uyum</h2>
+                <table class="w-full text-xs text-left">
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Aklimatizasyon</td><td class="text-slate-600">≥60 dk/gün, 1–2 hafta</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Ön Hidrasyon</td><td class="text-slate-600">6 mL/kg her 2–3 sa</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Sodyum</td><td class="text-slate-600">0,5–0,7 g/L; Kramp: 1,5 g/L</td></tr>
+                    <tr><td class="py-2 font-semibold text-slate-700">Soğutma</td><td class="text-slate-600">Buz bulamacı ~1 L (≤4°C)</td></tr>
+                </table>
+            </div>
+            <div class="card p-6 space-y-3">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2">Protein Zamanlama Özeti</h2>
+                <table class="w-full text-xs text-left">
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Antrenman Öncesi</td><td class="text-slate-600">0.25 g/kg · 1–3 sa önce</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Antrenman Sonrası</td><td class="text-slate-600">0.25–0.3 g/kg · 0–2 sa içinde</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Uyku Öncesi</td><td class="text-slate-600">Kazein 0.4 g/kg · 30–60 dk önce</td></tr>
+                    <tr><td class="py-2 font-semibold text-slate-700">Günlük Frekans</td><td class="text-slate-600">4–5 öğün · 3–5 saatte bir</td></tr>
+                </table>
+            </div>
+            <div class="card p-6 space-y-3">
+                <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-2">AIS Ergojenikler Hızlı Referans</h2>
+                <table class="w-full text-xs text-left">
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Kafein</td><td class="text-slate-600">3–6 mg/kg · 60 dk önce</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Kreatin</td><td class="text-slate-600">3–5 g/gün (yükleme: 20 g/gün 5–7 gün)</td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-2 font-semibold text-slate-700">Beta-Alanin</td><td class="text-slate-600">3.2–6.4 g/gün (bölünmüş doz)</td></tr>
+                    <tr><td class="py-2 font-semibold text-slate-700">Sodyum Bikarbonat</td><td class="text-slate-600">0.2–0.3 g/kg · 60–90 dk önce</td></tr>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ▸ TAB 10: GÖRÜŞMELER & TAKİP -->
+    <section id="tab-vs" class="tab-content hidden space-y-5">
+        <div class="card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-3 gap-2">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Görüşmeler & Takip —
+                    <span id="vs_client" class="text-indigo-700">Danışan seçilmedi</span>
+                </h2>
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn_visit_save" type="button" class="btn-primary flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Görüşmeyi Kaydet
+                    </button>
+                    <button id="btn_visit_new" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-plus"></i> Yeni Görüşme
+                    </button>
+                </div>
+            </div>
+            <div id="vs_msg" class="text-xs font-semibold min-h-[16px] text-emerald-700"></div>
+            <div id="vs_sync" class="text-[11px] font-semibold text-slate-400"></div>
+            <div id="vs_remind" class="hidden bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-xs leading-relaxed"></div>
+            <p class="text-[11px] text-slate-500">Her görüşmede <b>değişim dağılımı, menü, notlar, enerji/makro ve klinik notlar</b> birlikte saklanır. Diyet PDF indirilince görüşme otomatik arşivlenir.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700"><i class="fa-solid fa-comments text-emerald-600"></i> Danışanın söyledikleri / geri bildirimi</label>
+                    <textarea id="visit_feedback" rows="6" placeholder="Akşam yemeklerinde doyamıyor, sabah aç uyanıyor, antrenman sonrası halsizlik..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs leading-relaxed"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700"><i class="fa-solid fa-notes-medical text-indigo-600"></i> Sonraki görüşme için klinik notlarım</label>
+                    <textarea id="visit_next_notes" rows="6" placeholder="2 hafta sonra kilo ölçümü, ferritin sonucunu iste, kreatin kullanımını sor..." class="w-full bg-indigo-50/40 border border-indigo-100 rounded-xl p-3 text-xs leading-relaxed"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sonraki Diyet Soruları -->
+        <div class="card p-6 space-y-4">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question text-indigo-600"></i> Sonraki Diyet İçin Sorular
+            </h3>
+            <p class="text-[11px] text-slate-500">Yanıtlar yeni diyete işlenir. Boş bıraktığınız sorular dikkate alınmaz.</p>
+            <input type="hidden" id="q_meals_change"><input type="hidden" id="q_meals_remove">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700">1) Yemek istemediği / yiyemediği besinler <span class="font-normal text-slate-400">(virgülle ayırın)</span></label>
+                <input id="q_dislike" type="text" placeholder="balık, yulaf, kefir" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+            </div>
+            <div id="vs_chips" class="space-y-3">
+                <div class="space-y-1.5">
+                    <div class="text-xs font-bold text-slate-700">2) Hangi öğünlerdeki besinler değişsin?</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" data-chip="change" data-meal="0">Kahvaltı</button>
+                        <button type="button" data-chip="change" data-meal="1">Ara 1</button>
+                        <button type="button" data-chip="change" data-meal="2">Öğle</button>
+                        <button type="button" data-chip="change" data-meal="3">Ara 2</button>
+                        <button type="button" data-chip="change" data-meal="4">Akşam</button>
+                        <button type="button" data-chip="change" data-meal="5">Ara 3</button>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <div class="text-xs font-bold text-slate-700">3) Hangi öğün kaldırılsın? <span class="font-normal text-slate-400">(değişimleri diğer öğünlere dağıtılır)</span></div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" data-chip="remove" data-meal="0">Kahvaltı</button>
+                        <button type="button" data-chip="remove" data-meal="1">Ara 1</button>
+                        <button type="button" data-chip="remove" data-meal="2">Öğle</button>
+                        <button type="button" data-chip="remove" data-meal="3">Ara 2</button>
+                        <button type="button" data-chip="remove" data-meal="4">Akşam</button>
+                        <button type="button" data-chip="remove" data-meal="5">Ara 3</button>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-1.5">
+                <div class="text-xs font-bold text-slate-700">4) Öğün saatleri değişti mi? <span class="font-normal text-slate-400">(boş = varsayılan)</span></div>
+                <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                    <input id="q_t0" type="text" placeholder="Kahvaltı 08.00" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px]">
+                    <input id="q_t1" type="text" placeholder="Ara 1 11.00" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px]">
+                    <input id="q_t2" type="text" placeholder="Öğle 13.30" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px]">
+                    <input id="q_t3" type="text" placeholder="Ara 2 16.30" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px]">
+                    <input id="q_t4" type="text" placeholder="Akşam 19.30" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px]">
+                    <input id="q_t5" type="text" placeholder="Ara 3 22.30" class="bg-slate-50 border border-slate-200 rounded-lg p-2 text-[11px]">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700">5) Açlık / tokluk durumu</label>
+                    <select id="q_hunger" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                        <option value="">Seçiniz (değiştirme)</option>
+                        <option value="ac">Aç kalıyor</option>
+                        <option value="tok">Çok doygun / yiyemiyor</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700">6) Kilo / performans seyri</label>
+                    <select id="q_weight" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                        <option value="">Seçiniz</option>
+                        <option value="hedefte">Hedefe uygun</option>
+                        <option value="yavas">Hedefe göre yavaş</option>
+                        <option value="hizli">Çok hızlı</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btn_visit_apply" type="button" class="btn-primary flex items-center gap-1.5 w-fit">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Bu yanıtlara göre yeni diyeti hazırla
+            </button>
+            <div id="vs_log" class="text-xs text-slate-700 space-y-1 leading-relaxed"></div>
+        </div>
+
+        <!-- Geçmiş görüşmeler -->
+        <div class="card p-6 space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-emerald-600"></i> Geçmiş Görüşmeler & Diyetler
+            </h3>
+            <div id="vs_history" class="space-y-3"></div>
+        </div>
+    </section>
+
+
+<!-- ═══════════════ TAB 11: SUPPLEMENT PROTOKOL ═══════════════ -->
+<section id="tab-supp" class="tab-content hidden space-y-5">
+
+    <!-- Başlık -->
+    <div class="card">
+        <h3 class="section-title"><i class="fa-solid fa-pills text-purple-600"></i> Supplement Protokol</h3>
+        <p class="text-xs text-slate-500 mt-1">Danışana klinik olarak önerilen takviye maddeleri ve zamanlama protokolü.</p>
+    </div>
+
+    <!-- Supplement Ekle -->
+    <div class="card space-y-4">
+        <h4 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-plus-circle text-purple-500"></i> Supplement Ekle
+        </h4>
+
+        <!-- Hızlı Preset Seçimi -->
+        <div>
+            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Hızlı Seçim</p>
+            <div class="flex flex-wrap gap-1.5">
+                <button onclick="suppQuickAdd('D Vitamini (Günlük)','vitamin','Haftada 5 Gün Tok Karna · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">D Vitamini (Günlük)</button>
+                <button onclick="suppQuickAdd('D Vitamini (Depo)','vitamin','Haftada 2 Tok Karna · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">D Vitamini (Depo)</button>
+                <button onclick="suppQuickAdd('B12 Vitamini','vitamin','Sabah Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">B12 Vitamini</button>
+                <button onclick="suppQuickAdd('Folat (B9)','vitamin','Sabah Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">Folat (B9)</button>
+                <button onclick="suppQuickAdd('C Vitamini','vitamin','Öğle Yemeğiyle Tok Karna · 500 mg')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">C Vitamini</button>
+                <button onclick="suppQuickAdd('Demir','mineral','Haftanın Tek Günleri · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Demir</button>
+                <button onclick="suppQuickAdd('Magnezyum','mineral','Öğleden Sonra 14:30–17:00 Arası · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Magnezyum</button>
+                <button onclick="suppQuickAdd('Çinko','mineral','Yatmadan Önce · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Çinko</button>
+                <button onclick="suppQuickAdd('Kalsiyum','mineral','Akşam Yemeğiyle Tok Karna · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Kalsiyum</button>
+                <button onclick="suppQuickAdd('Selenyum','mineral','Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Selenyum</button>
+                <button onclick="suppQuickAdd('Omega-3','diger','Tok Karna 1 Kapsül (Öğle Civarı)')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Omega-3</button>
+                <button onclick="suppQuickAdd('Probiyotik','diger','Kahvaltıdan Sonra · 1 Kapsül')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Probiyotik</button>
+                <button onclick="suppQuickAdd('Krom Pikolinat','diger','Aç Karna · 1 Tablet')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Krom Pikolinat</button>
+                <button onclick="suppQuickAdd('Koenzim Q10','diger','Sabah Kahvaltısıyla · 1 Kapsül')" class="px-2 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition">Koenzim Q10</button>
+                <button onclick="suppQuickAdd('Demir + C Vitamini','mineral','Aç Karna · C Vitamini İle Birlikte')" class="px-2 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition">Demir + C Vitamini</button>
+                <button onclick="suppQuickAdd('B Kompleks','vitamin','Kahvaltıdan Sonra · 1 Tablet')" class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] font-semibold text-amber-700 hover:bg-amber-100 transition">B Kompleks</button>
+            </div>
+        </div>
+
+        <!-- Manuel Ekleme -->
+        <div class="border-t border-slate-100 pt-3">
+            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Manuel Ekle</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                    <label class="text-[11px] text-slate-500 font-medium">Supplement Adı</label>
+                    <input id="supp_name" type="text" placeholder="ör. Demir" class="input mt-1" list="supp_name_list">
+                    <datalist id="supp_name_list">
+                        <option value="D Vitamini (Günlük)"><option value="D Vitamini (Depo)">
+                        <option value="B12 Vitamini"><option value="B6 Vitamini">
+                        <option value="Folat (B9)"><option value="C Vitamini"><option value="E Vitamini">
+                        <option value="Demir"><option value="Magnezyum"><option value="Çinko">
+                        <option value="Kalsiyum"><option value="Selenyum"><option value="İyot">
+                        <option value="Omega-3"><option value="Probiyotik"><option value="Krom Pikolinat">
+                        <option value="Koenzim Q10"><option value="Glutamin"><option value="B Kompleks">
+                    </datalist>
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-500 font-medium">Zamanlama / Doz</label>
+                    <input id="supp_timing" type="text" placeholder="ör. Tok Karna · 1 Tablet" class="input mt-1" list="supp_timing_list">
+                    <datalist id="supp_timing_list">
+                        <option value="Sabah Aç Karna · 1 Tablet">
+                        <option value="Kahvaltıdan Sonra · 1 Tablet">
+                        <option value="Kahvaltıdan Sonra · 1 Kapsül">
+                        <option value="Öğle Yemeğiyle Tok Karna · 1 Tablet">
+                        <option value="Öğleden Sonra 14:30–17:00 Arası · 1 Tablet">
+                        <option value="Akşam Yemeğiyle Tok Karna · 1 Tablet">
+                        <option value="Yatmadan Önce · 1 Tablet">
+                        <option value="Haftada 5 Gün Tok Karna · 1 Tablet">
+                        <option value="Haftada 2 Tok Karna · 1 Tablet">
+                        <option value="Haftanın Tek Günleri · 1 Tablet">
+                        <option value="Haftanın Çift Günleri · 1 Tablet">
+                        <option value="Aç Karna · 1 Tablet">
+                        <option value="Antrenman Sonrası Tok Karna · 1 Kapsül">
+                    </datalist>
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-500 font-medium">Kategori</label>
+                    <select id="supp_cat" class="input mt-1">
+                        <option value="vitamin">Vitamin</option>
+                        <option value="mineral">Mineral</option>
+                        <option value="diger">Diğer</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="suppAddManual()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Listeye Ekle
+            </button>
+        </div>
+    </div>
+
+    <!-- Mevcut Protokol -->
+    <div class="card space-y-3">
+        <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-purple-500"></i>
+                Mevcut Protokol
+                <span id="supp_count" class="text-[11px] font-normal text-slate-400"></span>
+            </h4>
+            <div class="flex gap-2">
+                <button onclick="suppGenPDF()" class="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-pdf"></i> PDF Oluştur
+                </button>
+                <button onclick="suppClearAll()" class="px-3 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-trash-can"></i> Temizle
+                </button>
+            </div>
+        </div>
+
+        <!-- Görsel Kartlar -->
+        <div id="supp_cards" class="space-y-2">
+            <p class="text-sm text-slate-400 text-center py-6 italic">Henüz supplement eklenmedi.</p>
+        </div>
+    </div>
+
+    <!-- Bilgi -->
+    <div class="card bg-purple-50 border border-purple-100 text-xs text-purple-700 space-y-1">
+        <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Klinik Notlar</p>
+        <p>• Demir suplemantasyonu mümkünse C vitamini ile birlikte, süt ve kahveden 2 saat uzakta verilmelidir.</p>
+        <p>• D vitamini yağda çözünür — mutlaka tok karna alınmalıdır. Magnezyum D3 biyoyararlanımını artırır.</p>
+        <p>• Probiyotikler antibiyotikten 2 saat sonra, tercihen kahvaltıdan sonra alınmalıdır.</p>
+        <p>• Krom pikolinat insülin duyarlılığını destekler — aç karna daha etkin emilir.</p>
+    </div>
+
+</section>
+
+</main>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="bg-white border-t border-slate-200 text-xs py-3 px-6 text-center text-slate-400 no-print pb-safe">
+    ASD v3.1 Pro · Assistant Sport Dietitian · Kanıta Dayalı Sporcu Beslenmesi
+</footer>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+
+<!-- Önce PDF kütüphanesi ve modülleri yükle -->
+<script src="pdf-lib.min.js"></script>
+<script src="diet-pdf.js?v=15"></script>
+<script src="exchange-menu.js?v=15"></script>
+<script src="visits.js?v=15"></script>
+
+<!-- PDF Buton — basit ve güvenilir -->
+<script>
+window.addEventListener('load', function () {
+    var btn = document.getElementById('btn_diet_pdf');
+    var msgEl = document.getElementById('diet_pdf_msg');
+
+    function setMsg(text, ok) {
+        if (!msgEl) return;
+        msgEl.className = 'text-xs font-semibold min-h-[20px] no-print px-1 ' + (ok ? 'text-emerald-700' : 'text-rose-600');
+        msgEl.innerHTML = text;
+    }
+
+    if (!btn) return;
+
+    btn.addEventListener('click', async function () {
+        if (btn.dataset.busy) return;
+        btn.dataset.busy = '1';
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'wait';
+        setMsg('⏳ PDF oluşturuluyor…', true);
+
+        try {
+            if (!window.DietPDF || typeof window.DietPDF.run !== 'function') {
+                throw new Error('PDF modülü yüklenemedi. Sayfayı yenileyin ve tüm dosyaların (diet-pdf.js, pdf-lib.min.js) sunucuda olduğunu doğrulayın.');
+            }
+            await window.DietPDF.run();
+            setMsg('✅ PDF başarıyla oluşturuldu ve indirildi.', true);
+        } catch (err) {
+            var msg = err && err.message ? err.message : String(err);
+            setMsg('❌ ' + msg.replace(/</g, '&lt;'), false);
+            console.error('Diet PDF error:', err);
+        } finally {
+            delete btn.dataset.busy;
+            btn.style.opacity = '';
+            btn.style.cursor = '';
+        }
+    });
+
+    // Hazır olduğunu bildir
+    if (window.DietPDF) {
+        setMsg('✔ PDF modülü hazır [v' + (window.DietPDF.version || '?') + ']', true);
+        setTimeout(function() { if (msgEl && msgEl.textContent.startsWith('✔')) msgEl.textContent = ''; }, 3000);
+    } else {
+        setMsg('⚠️ PDF modülü yüklenemedi — sayfayı yenileyin', false);
+    }
+});
+</script>
+
+<!-- JS Application Engine -->
+<script>
+        const $=i=>document.getElementById(i),N=i=>parseFloat(String($(i).value).replace(",","."))||0,
+        f=(x,d=0)=>isFinite(x)?x.toLocaleString("tr-TR",{maximumFractionDigits:d,minimumFractionDigits:d}):"–",
+        rg=(a,b,d=0)=>f(a,d)+"–"+f(b,d),S=(i,t,w)=>{const e=$(i);if(e){e.textContent=t;if(w!==undefined)e.className=w?"text-rose-600 font-bold":"";}};
+
+        const B=[
+            ["Hafif / Teknik (3–5 g/kg)",3,5],
+            ["Orta (~1 sa/gün) (5–7 g/kg)",5,7],
+            ["Yüksek (1–3 sa/gün) (6–10 g/kg)",6,10],
+            ["Çok Yüksek (>4–5 sa/gün) (8–12 g/kg)",8,12],
+            ["Yükleme (>90 dk etkinlik öncesi)",10,12],
+            ["UEFA: Antrenman Günü (3–6 g/kg)",3,6],
+            ["UEFA: MD-1 / MD / MD+1 (6–8 g/kg)",6,8],
+            ["UEFA: Sezon Dışı (<4 g/kg)",2,4]
+        ];
+        const P=[
+            ["Genel İdame (1.2–1.6 g/kg)",1.2,1.6],
+            ["Antrenman / Güç (1.6–2.2 g/kg)",1.6,2.2],
+            ["Enerji Kısıtı / Definasyon (2.0–2.4 g/kg)",2,2.4],
+            ["Sıkı Kısıt (2.3–3.1 g/kg)",2.3,3.1]
+        ];
+
+        const EX=[
+            { name: "Süt (Tam Yağlı)", cho: 9, pro: 6, fat: 6, kcal: 114, isGram: false },
+            { name: "Süt (Yarım Yağlı)", cho: 9, pro: 6, fat: 3, kcal: 87, isGram: false },
+            { name: "Süt (Yağsız)", cho: 9, pro: 6, fat: 0, kcal: 60, isGram: false },
+            { name: "Et / Peynir / Yumurta", cho: 0, pro: 6, fat: 5, kcal: 69, isGram: false },
+            { name: "Karbonhidrat (Ekmek/Tahıl)", cho: 15, pro: 2, fat: 0, kcal: 68, isGram: false },
+            { name: "Sebze", cho: 6, pro: 2, fat: 0, kcal: 32, isGram: false },
+            { name: "Meyve", cho: 15, pro: 0, fat: 0, kcal: 60, isGram: false },
+            { name: "Yağ", cho: 0, pro: 0, fat: 5, kcal: 45, isGram: false },
+            { name: "Protein Powder (g)", cho: 0.05, pro: 0.80, fat: 0.03, kcal: 3.67, isGram: true }
+        ];
+
+        const ML=["Kahvaltı","Ara 1","Öğle","Ara 2","Akşam","Ara 3"];
+
+        const PR=[
+            ["Whey Konsantre",80,10],
+            ["Whey İzolat",90,10.5],
+            ["Kazein (Mitsel)",80,9],
+            ["Bezelye İzolatı (Bitkisel)",80,8.0],
+            ["Yumurta Akı",80,8.5],
+            ["Soya İzolatı",90,8.3]
+        ];
+
+        function renderExchangeTable() {
+            const tbody = $("exchange-tbody");
+            tbody.innerHTML = EX.map((e, i) => {
+                const labelSub = e.isGram ? "g bazlı (1g ~ 0.8g P)" : `${e.cho}/${e.pro}/${e.fat} g`;
+                const step = e.isGram ? "5" : "0.5";
+                return `
+                    <tr class="${e.isGram ? 'bg-indigo-50/50 font-semibold' : ''}">
+                        <td class="p-3 font-semibold text-slate-800 flex items-center gap-2">
+                            ${e.isGram ? '<i class="fa-solid fa-jar text-indigo-600"></i>' : ''} ${e.name}
+                            <br><small class="text-[10px] text-slate-400 font-normal">${labelSub}</small>
+                        </td>
+                        ${ML.map((m, j) => `
+                            <td class="p-2 text-center">
+                                <input id="m${i}_${j}" type="number" step="${step}" min="0" placeholder="0" oninput="calc()" class="w-14 text-center bg-slate-50 border border-slate-200 rounded-lg p-1 text-xs font-bold focus:ring-2 focus:ring-emerald-500">
+                            </td>
+                        `).join("")}
+                        <td class="p-3 text-right font-black text-slate-900" id="t${i}">0${e.isGram ? 'g' : ''}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        
+        // Client Files Management
+        let currentClientFiles = [];
+
+        function handleFileUpload(e) {
+            const files = e.target.files;
+            if (!files || !files.length) return;
+
+            Array.from(files).forEach(file => {
+                if (file.size > 8 * 1024 * 1024) {
+                    alert(`${file.name} dosyası 8MB'dan büyük! Lütfen daha küçük bir dosya seçin.`);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    currentClientFiles.push({
+                        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+                        name: file.name,
+                        size: (file.size / 1024).toFixed(1) + " KB",
+                        type: file.type,
+                        data: event.target.result,
+                        date: new Date().toLocaleDateString("tr-TR")
+                    });
+                    renderClientFiles();
+                    save();
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = "";
+        }
+
+        function renderClientFiles() {
+            const listEl = $("client_files_list");
+            if (!listEl) return;
+
+            if (!currentClientFiles || !currentClientFiles.length) {
+                listEl.innerHTML = `<p class="text-slate-400 text-[11px] italic">Henüz eklenmiş belge yok.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = currentClientFiles.map(f => {
+                let icon = "fa-file text-slate-500";
+                if (f.type.includes("pdf")) icon = "fa-file-pdf text-rose-600";
+                else if (f.type.includes("image")) icon = "fa-file-image text-emerald-600";
+                else if (f.type.includes("sheet") || f.type.includes("excel") || f.type.includes("xls")) icon = "fa-file-excel text-teal-600";
+                else if (f.type.includes("word") || f.type.includes("doc")) icon = "fa-file-word text-indigo-600";
+
+                return `
+                    <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <div class="flex items-center gap-2 overflow-hidden mr-2">
+                            <i class="fa-solid ${icon} text-sm flex-shrink-0"></i>
+                            <div class="truncate">
+                                <p class="font-bold text-slate-800 text-[11px] truncate">${f.name}</p>
+                                <p class="text-[9px] text-slate-400">${f.size} · ${f.date}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <a href="${f.data}" target="_blank" download="${f.name}" class="bg-emerald-50 text-emerald-700 font-bold text-[10px] px-2 py-1 rounded-lg border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Gör / İndir
+                            </a>
+                            <button onclick="removeClientFile('${f.id}')" class="bg-rose-50 text-rose-700 font-bold text-[10px] px-2 py-1 rounded-lg border border-rose-200 hover:bg-rose-100">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        window.removeClientFile = function(fileId) {
+            currentClientFiles = currentClientFiles.filter(f => f.id !== fileId);
+            renderClientFiles();
+            save();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active-tab'));
+            
+            const target = $("tab-" + tabId);
+            const btn = $("nav-" + tabId);
+            if (target) target.classList.remove('hidden');
+            if (btn) btn.classList.add('active-tab');
+            window.scrollTo(0, 0);
+        }
+
+        const borgMap = {
+            6: "Hiç Çaba Yok", 7: "Çok Çok Hafif", 8: "Çok Hafif -", 9: "Çok Hafif",
+            10: "Hafif -", 11: "Hafif", 12: "Hafif - Orta", 13: "Biraz Zor",
+            14: "Orta - Zor", 15: "Zor", 16: "Çok Zor -", 17: "Çok Zor",
+            18: "Çok Çok Zor", 19: "Maksimal -", 20: "Maksimal Efor"
+        };
+
+        function calc() {
+            const kg = N("kg"), cm = N("cm"), ya = N("ya"), bf = N("bf");
+            const ffm = kg * (1 - bf / 100);
+            const mif = 10 * kg + 6.25 * cm - 5 * ya + ($("sx").value === "1" ? -161 : 5);
+            const cun = 500 + 22 * ffm;
+
+            const dur = N("dur") || 90;
+            const brg = parseInt($("brg").value) || 14;
+            const srpe = brg * dur;
+            const est_hr = brg * 10;
+
+            $("borg-val-num").innerText = brg;
+            $("borg-val-text").innerText = borgMap[brg] || "";
+            S("srpe", f(srpe));
+            S("srpe_hr", f(est_hr) + " bpm");
+
+            let srpeCat = "", srpeRec = "", recPAL = 1.5, recCG = 6.0, recCBIndex = 1;
+            if (srpe < 700) {
+                srpeCat = "Hafif / Toparlanma";
+                srpeRec = "3–5 g/kg CHO · PAL ~1.3";
+                recPAL = 1.3; recCG = 4.0; recCBIndex = 0;
+            } else if (srpe < 1100) {
+                srpeCat = "Orta Şiddet";
+                srpeRec = "5–7 g/kg CHO · PAL ~1.5";
+                recPAL = 1.5; recCG = 6.0; recCBIndex = 1;
+            } else if (srpe < 1500) {
+                srpeCat = "Yüksek Şiddet";
+                srpeRec = "7–10 g/kg CHO · PAL ~1.8";
+                recPAL = 1.8; recCG = 8.5; recCBIndex = 2;
+            } else {
+                srpeCat = "Aşırı Yük / Müsabaka";
+                srpeRec = "10–12 g/kg CHO · PAL ~2.1";
+                recPAL = 2.1; recCG = 11.0; recCBIndex = 3;
+            }
+            S("srpe_cat", srpeCat);
+            S("srpe_rec", srpeRec);
+
+            $("btn_srpe_apply").onclick = () => {
+                $("pal").value = recPAL;
+                $("cg").value = recCG;
+                $("cb").value = recCBIndex;
+                calc(); sm(); save();
+            };
+
+            const tee = ($("eq").value === "0" ? mif : cun) * N("pal") + N("adj");
+            const cho = kg * N("cg"), pro = kg * N("pg");
+            // Yağ: TEE'nin %25'i sabit (ACSM / IOC önerisi)
+            const fat = tee * 0.25 / 9;
+            const fp = 25; // sabit %25
+
+            S("ffm", f(ffm, 1) + " kg"); S("mif", f(mif) + " kcal"); S("cun", f(cun) + " kcal"); S("tee", f(tee) + " kcal");
+            S("c1", f(cho) + " g"); S("p1", f(pro) + " g");
+            S("f1", f(fat, 0) + " g (%25)"); S("ms", f(cho * 4 + pro * 4 + fat * 9) + " kcal");
+
+            // Exchange Calculation
+            let C = 0, Pp = 0, F = 0, pwGramTotal = 0, pwProteinTotal = 0;
+            const mealProCounts = [0, 0, 0, 0, 0, 0];
+
+            EX.forEach((e, i) => {
+                let rowSum = 0;
+                ML.forEach((m, j) => {
+                    const val = N(`m${i}_${j}`);
+                    rowSum += val;
+                    mealProCounts[j] += val * e.pro;
+                });
+
+                S(`t${i}`, f(rowSum, e.isGram ? 0 : 1) + (e.isGram ? ' g' : ''));
+                C += rowSum * e.cho;
+                Pp += rowSum * e.pro;
+                F += rowSum * e.fat;
+
+                if (i === 8) {
+                    pwGramTotal = rowSum;
+                    pwProteinTotal = rowSum * e.pro;
+                }
+            });
+
+            const K = C * 4 + Pp * 4 + F * 9;
+            const pc = (a, b) => b > 0 ? " (" + f(a / b * 100) + "%)" : "";
+
+            S("d1", f(K) + " / " + f(tee) + " kcal");
+            S("d2", f(C) + " / " + f(cho) + " g" + pc(C, cho));
+            S("d3", f(Pp) + " / " + f(pro) + " g" + pc(Pp, pro));
+            S("d4", f(F) + " / " + f(fat) + " g" + pc(F, fat));
+            S("d5", K > 0 ? "%" + f(C * 4 / K * 100) + " / %" + f(Pp * 4 / K * 100) + " / %" + f(F * 9 / K * 100) : "–");
+
+            $("menu-total-summary").innerText = f(K) + " kcal";
+
+            // Protein Tab Sync
+            S("q1", f(pro) + " g");
+            S("q2", f(Pp) + " g");
+            S("q2_pw", f(pwProteinTotal) + " g (" + f(pwGramTotal) + "g powder)");
+            S("q3", f(Math.max(pro - Pp, 0)) + " g");
+            S("q4", rg(.25 * kg, .4 * kg) + " g");
+            S("q5", rg(.25 * kg, .3 * kg) + " g");
+            S("q6", f(.4 * kg) + " g");
+
+            // Hydration
+            const a = N("h1"), b = N("h2"), fi = N("h3"), u = N("h4"), hh = N("h5");
+            const sw = a - b + fi - u, de = a - b;
+            const swRate = (a && b && hh) ? sw / hh : 0;
+            const bwLoss = (a && b) ? de / a * 100 : 0;
+            S("hl", a && b ? f(sw, 2) + " L" : "–");
+            S("hr", a && b && hh ? f(swRate, 2) + " L/sa" : "–");
+            S("hd", a && b ? f(de, 2) + " kg" : "–");
+            S("hp", a && b ? "%" + f(bwLoss, 1) : "–");
+            S("hx", a && b && de > 0 ? rg(de * 1.25, de * 1.5, 2) + " L" : "–");
+
+            S("p1h", rg(5 * kg, 7 * kg) + " mL");
+            S("p2h", rg(3 * kg, 5 * kg) + " mL");
+
+            // Hidrasyon → Danışan Notlarına Otomatik Yaz
+            updateHydrationNotes(kg, swRate, bwLoss, de, a, b, hh);
+
+            // Render Meal Protein & MPS Breakdown
+            renderMealProteinBreakdown(kg, mealProCounts);
+
+            // EVALUATION & CHECKLIST
+            evaluateMenu(K, tee, C, cho, Pp, pro, F, fat, srpe, kg, mealProCounts);
+
+            // Render AIS
+            renderAIS();
+
+            // BIA Spor Branşı Referans Önerileri
+            renderBIARef();
+        }
+
+        function renderMealProteinBreakdown(kg, mealProCounts) {
+            const container = $("meal-protein-breakdown");
+            if (!container) return;
+
+            const mpsTarget = 0.25 * kg;
+            $("mps-target-badge").innerText = `Hedef Öğün Başı: ~${f(mpsTarget,1)}g - ${f(0.4*kg,1)}g P`;
+
+            container.innerHTML = ML.map((m, j) => {
+                const pVal = mealProCounts[j];
+                const leucineEst = pVal * 0.09; // ~9% leucine
+                let badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+                let badgeText = "❌ Yetersiz";
+
+                if (pVal >= mpsTarget) {
+                    badgeClass = "bg-emerald-50 text-emerald-800 border-emerald-200";
+                    badgeText = "✔ MPS Tetiklendi";
+                } else if (pVal >= mpsTarget * 0.7) {
+                    badgeClass = "bg-amber-50 text-amber-800 border-amber-200";
+                    badgeText = "⚠️ Alt Eşikte";
+                }
+
+                return `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center space-y-1">
+                        <p class="font-bold text-slate-700 text-xs">${m}</p>
+                        <p class="text-sm font-black text-slate-900">${f(pVal,1)} g P</p>
+                        <p class="text-[10px] text-slate-400">~${f(leucineEst,1)}g Lösin</p>
+                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeClass}">
+                            ${badgeText}
+                        </span>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function evaluateMenu(K, tee, C, cho, Pp, pro, F, fat, srpe, kg, mealProCounts) {
+            const container = $("eval-container");
+            const checklist = $("clinical-checklist");
+            if (!container || !checklist) return;
+
+            let evals = [];
+            let checkItems = [];
+
+            // 1. Energy
+            const kcalPct = tee > 0 ? (K / tee) * 100 : 0;
+            if (kcalPct >= 95 && kcalPct <= 105) {
+                evals.push({ status: 'success', title: '✔ Mükemmel Kalori Dengesi', msg: `Menü enerjisi (${f(K)} kcal), hedef TEE'nin (${f(tee)} kcal) %${f(kcalPct)} kadarıdır.` });
+            } else if (kcalPct < 95) {
+                evals.push({ status: 'warning', title: '⚠️ Enerji Açığı / RED-S Riski', msg: `Menü enerjisi hedef TEE'den ${f(Math.abs(K - tee))} kcal eksik (%${f(kcalPct)}). RED-S riskini gözetin.` });
+            } else {
+                evals.push({ status: 'warning', title: '⚠️ Kalori Fazlası', msg: `Menü enerjisi TEE'den ${f(K - tee)} kcal fazla (%${f(kcalPct)}).` });
+            }
+
+            // 2. CHO & sRPE
+            const choPct = cho > 0 ? (C / cho) * 100 : 0;
+            if (srpe >= 1100 && choPct < 85) {
+                evals.push({ status: 'danger', title: '❌ Yetersiz CHO (sRPE Yüksek!)', msg: `Seans yükü yüksek (sRPE: ${srpe}), ancak menü CHO hedefinin %${f(choPct)}'ini karşılıyor!` });
+            } else if (choPct >= 90) {
+                evals.push({ status: 'success', title: '✔ Karbonhidrat Uyumlu', msg: `Alınan CHO (${f(C)}g), antrenman yükü hedefinin (%${f(choPct)}) dengesindedir.` });
+            } else {
+                evals.push({ status: 'warning', title: '⚠️ Karbonhidrat Eksik', msg: `Menü CHO miktarı hedefinin %${f(choPct)} kadarı.` });
+            }
+
+            // 3. Clinical Checklist
+            const mpsTarget = 0.25 * kg;
+            const validMeals = mealProCounts.filter(p => p >= mpsTarget).length;
+
+            checkItems.push({
+                ok: validMeals >= 3,
+                title: 'Sirkadiyen Protein Dağılımı',
+                desc: validMeals >= 3 ? `${validMeals} öğünde MPS eşiği (≥${f(mpsTarget,1)}g P) yakalandı.` : `Yalnızca ${validMeals} öğünde anabolik eşik aşılıyor. Öğünler arası protein dengelenmeli.`
+            });
+
+            checkItems.push({
+                ok: mealProCounts[5] >= 0.3 * kg || mealProCounts[4] >= 0.3 * kg,
+                title: 'Gece / Uyku Öncesi Protein',
+                desc: (mealProCounts[5] >= 0.3 * kg || mealProCounts[4] >= 0.3 * kg) ? 'Gece boyu kas onarımı için son öğün proteini yeterli.' : 'Uyku öncesinde ~0.4 g/kg kazein veya süzme yoğurt/süt eklenmesi önerilir.'
+            });
+
+            checkItems.push({
+                ok: srpe < 1100 || (mealProCounts[1] > 0 || mealProCounts[3] > 0),
+                title: 'Antrenman Çevresi Beslenme (Nutrient Timing)',
+                desc: 'Antrenman sonrası ilk 0–2 saatte 3:1 CHO:Protein toparlanma öğünü planlanmalı.'
+            });
+
+            checkItems.push({
+                ok: true,
+                title: 'Hidrasyon & Sıvı Dengesi',
+                desc: 'Seans öncesi 5-7 mL/kg sıvı, seans içi sodyumlu içecek (0.5-0.7 g/L) kontrol edilmeli.'
+            });
+
+            checkItems.push({
+                ok: true,
+                title: 'Sağlık & Mikronütriyen Desteği',
+                desc: 'D Vitamini, Demir/Ferritin takibi, Omega-3 ve Probiyotik ihtiyaçları gözden geçirilmeli.'
+            });
+
+            // Render Evaluation Cards
+            container.innerHTML = evals.map(ev => {
+                let border = "border-emerald-200 bg-emerald-50/60 text-emerald-900";
+                let icon = "fa-circle-check text-emerald-600";
+                if (ev.status === 'warning') {
+                    border = "border-amber-200 bg-amber-50/60 text-amber-900";
+                    icon = "fa-triangle-exclamation text-amber-600";
+                } else if (ev.status === 'danger') {
+                    border = "border-rose-200 bg-rose-50/60 text-rose-900";
+                    icon = "fa-circle-xmark text-rose-600";
+                }
+                return `
+                    <div class="p-3.5 rounded-xl border ${border} space-y-1">
+                        <p class="font-bold text-xs flex items-center gap-2">
+                            <i class="fa-solid ${icon}"></i> ${ev.title}
+                        </p>
+                        <p class="text-xs leading-relaxed opacity-90">${ev.msg}</p>
+                    </div>
+                `;
+            }).join("");
+
+            // Render Checklist
+            checklist.innerHTML = checkItems.map(item => `
+                <div class="p-2.5 rounded-xl border ${item.ok ? 'bg-slate-50 border-slate-200' : 'bg-amber-50 border-amber-200'} flex items-start gap-2.5">
+                    <i class="fa-solid ${item.ok ? 'fa-circle-check text-emerald-600' : 'fa-triangle-exclamation text-amber-600'} text-sm mt-0.5"></i>
+                    <div>
+                        <p class="font-bold text-slate-800 text-xs">${item.title}</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">${item.desc}</p>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function loadSampleMenu() {
+            // Her basışta hedeflere göre ölçeklenen bir sonraki örnek dağıtım gelir (exchange-menu.js)
+            if (window.ExchangeMenu) { ExchangeMenu.nextExample(); return; }
+            calc(); sm(); save();
+        }
+
+        function loadSampleTextMenu() {
+            const sampleText = 
+`KAHVALTI (08:30):
+• 2 adet haşlanmış yumurta + 2 dilim süzme peynir (60g)
+• 2 dilim ekşi mayalı tam buğday ekmeği + 5-6 adet zeytin
+• Bol söğüş sebze (salatalık, domates, kapya biber) + 1 tatlı kaşığı zeytinyağı
+
+ARA ÖĞÜN / ANTRENMAN ÖNCESİ (11:30 - Seans öncesi 90 dk):
+• 1 orta boy muz + 20g çiğ badem / ceviz
+• 250 mL su
+
+ANTRENMAN İÇİ (13:00 - 14:30):
+• 500 mL su + 1 saati aşan seansta 30g izotonik sporcu içeceği
+
+ANTRENMAN SONRASI TOPARLANMA (14:45 - İlk 30 dk):
+• 1 ölçek Whey / Bezelye Proteini (30g) + 300 mL laktozsuz süt/su
+• 2 adet kuru hurma
+
+ÖĞLE YEMEĞİ (16:00):
+• 180g ızgara tavuk göğsü / hindi
+• 1.5 su bardağı haşlanmış basmati pirinç pilavı / makarna
+• 1 kase mevsim salatası (1 tatlı kaşığı zeytinyağı ile)
+
+AKŞAM YEMEĞİ (19:30):
+• 180g fırın somon / bonfile / köfte
+• 1 su bardağı haşlanmış karabuğday / kinoa
+• Fırınlanmış kök sebzeler (kabak, havuç, brokolı)
+
+GECE / UYKU ÖNCESİ (22:30):
+• 200g süzme yoğurt / 1 su bardağı kefir + 1 tatlı kaşığı bal + tarçın`;
+
+            const sampleNotes = 
+`KLİNİK & SPOR DİYETİSYENİ NOTLARI:
+• Ferritin: 18 ng/mL (Düşük) -> Öğle yemeğinden sonra C vitamini ile demir takviyesi alınacak.
+• Sıcak hava idmanında ter hızı yüksek çıkmıştır -> Mataraya 0.7g/L sodyum (çimdik tuz) eklenecek.
+• Maç günü (MD-1) karbonhidrat yükleme protokolüne (8 g/kg) geçilecek.`;
+
+            if ($("written_menu")) $("written_menu").value = sampleText;
+            if ($("client_notes")) $("client_notes").value = sampleNotes;
+            save();
+        }
+
+        function updateHydrationNotes(kg, swRate, bwLoss, de, preW, postW, dur) {
+            // Sadece ter ölçümü yapılmışsa notu oluştur
+            if (!preW || !postW) return;
+            const notesEl = $("pdf_notes");
+            if (!notesEl) return;
+
+            // Ter sınıflandırması
+            const swClass = swRate < 0.5 ? "Düşük" : swRate < 1.0 ? "Orta" : swRate < 1.5 ? "Yüksek" : "Çok Yüksek";
+            const bwOk = bwLoss < 2;
+            const bwText = bwLoss < 1 ? "iyi hidrasyon korunmuş" : bwLoss < 2 ? "kabul edilebilir kayıp" : bwLoss < 3 ? "⚠️ performans etkisi olası" : "🚨 ciddi dehidrasyon riski";
+
+            // Günlük sıvı hedefi (bazal 35 mL/kg + terleme kaybının %125-150 replasman)
+            const replMin = de * 1.25, replMax = de * 1.5;
+            const dailyMin = Math.round((35 * kg / 1000) * 10) / 10;
+            const preworkout = Math.round(5 * kg / 50) * 50; // 5 mL/kg, 50 mL'ye yuvarla
+            const duringSports = swRate > 0 ? `${f(swRate * 1000 * 0.6, 0)}–${f(swRate * 1000 * 0.8, 0)} mL/sa` : "400–800 mL/sa";
+
+            const hydrationBlock = [
+                ``,
+                `HİDRASYON PROTOKOLÜ;`,
+                `Ölçülen Ter Hızı: ${swRate > 0 ? f(swRate, 2) + " L/sa" : "–"} (${swClass})`,
+                `Vücut Ağırlık Kaybı: %${f(bwLoss, 1)} — ${bwText}`,
+                ``,
+                `Seans Öncesi (≥4 sa önce):`,
+                `${preworkout}–${preworkout + 200} mL su/sporcu içeceği`,
+                ``,
+                `Seans İçi Hedef:`,
+                `${duringSports} (sodyum: 0.5–0.7 g/L)`,
+                de > 0 ? `Seans sonrası replasman: ${f(replMin, 1)}–${f(replMax, 1)} L (kayıpın %125–150)` : null,
+                ``,
+                `Günlük Bazal Sıvı Hedefi: en az ${dailyMin} L (idrar açık sarı = yeterli hidrasyon)`,
+            ].filter(l => l !== null).join("\n");
+
+            const existing = notesEl.value;
+            // Önceki hidrasyon bloğunu kaldır, yenisini ekle
+            const TAG_START = "\nHİDRASYON PROTOKOLÜ;", TAG_END_MARKER = "Günlük Bazal Sıvı Hedefi";
+            let cleaned = existing;
+            const hydIdx = cleaned.indexOf(TAG_START);
+            if (hydIdx !== -1) {
+                // Önceki bloğu bul ve kaldır
+                const endIdx = cleaned.indexOf("\n\n", hydIdx + TAG_START.length + 50);
+                cleaned = cleaned.slice(0, hydIdx) + (endIdx !== -1 ? cleaned.slice(endIdx) : "");
+            }
+            notesEl.value = (cleaned.trimEnd() + "\n" + hydrationBlock).trimStart();
+        }
+
+        function renderBIARef() {
+            const sport = ($("cnt_sport") ? $("cnt_sport").value : "").trim().toLowerCase();
+            const bf = N("bf"), ffmVal = N("kg") * (1 - N("bf") / 100);
+            const sx = $("sx") ? $("sx").value : "1"; // 1=kadın, 0=erkek
+            const el = $("bia-sport-ref"), lbl = $("bia-sport-label"), cont = $("bia-sport-content");
+            if (!el || !sport) { if (el) el.classList.add("hidden"); return; }
+
+            // Sporcu BIA referans veritabanı (yağ %, FFM kg ve notlar)
+            const DB = [
+                { kw: /futbol|soccer/i, name: "Futbol",
+                  m: { fat: [8,14], note: "Forvet/Kanat 8–11% · Stoper/KM 11–14% · Kaleci 12–16%" },
+                  f: { fat: [14,22], note: "Elit kadın futbolcular 14–19%"} },
+                { kw: /basketbol/i, name: "Basketbol",
+                  m: { fat: [6,14], note: "Guard 6–10% · Forward 8–12% · Center 10–14%" },
+                  f: { fat: [14,20], note: "Pozisyona göre 14–20%"} },
+                { kw: /voleybol/i, name: "Voleybol",
+                  m: { fat: [7,13], note: "Pasör/Libero 7–10% · Orta/Kanat 9–13%" },
+                  f: { fat: [14,21], note: "Libero 14–17% · Orta Oyuncu 16–21%"} },
+                { kw: /yüzme|yüzücü|swimmer/i, name: "Yüzme",
+                  m: { fat: [8,14], note: "Sprint (50–100m) 8–11% · Uzun mesafe (400m+) 10–14%" },
+                  f: { fat: [16,22], note: "Sprint 16–18% · Uzun mesafe 18–22%"} },
+                { kw: /bisiklet|cyclist/i, name: "Bisiklet",
+                  m: { fat: [5,11], note: "Yol 5–8% · MTB 7–11% · Pist sprint 7–10%" },
+                  f: { fat: [10,16], note: "Yol 10–13% · MTB 12–16%"} },
+                { kw: /halter|powerlifting|güç kaldırma/i, name: "Halter / Powerlifting",
+                  m: { fat: [12,20], note: "Kategoriye göre değişir; FFM mutlak değeri daha kritik" },
+                  f: { fat: [18,26], note: "Sıklet sınırına göre; FFM/kg vücut ağırlığı öncelikli"} },
+                { kw: /güreş|wrestling|judo/i, name: "Güreş / Judo",
+                  m: { fat: [5,12], note: "Siklet için minimum yağ yönetimi; 5%nin altı sağlık riski" },
+                  f: { fat: [12,18], note: "Güvenli minimum: %12"} },
+                { kw: /koşu|atletizm|maraton|kros|uzun mesafe/i, name: "Atletizm / Uzun Mesafe",
+                  m: { fat: [5,12], note: "Maraton elit 5–8% · Orta mesafe 7–12%"} ,
+                  f: { fat: [10,17], note: "Maraton elit 10–13% · Orta mesafe 13–17%"} },
+                { kw: /hentbol|handball/i, name: "Hentbol",
+                  m: { fat: [9,15], note: "Pivot/Kanat 9–12% · Orta/Kaleci 12–15%" },
+                  f: { fat: [16,22], note: "Pivot 16–19% · Kanat 18–22%"} },
+                { kw: /rugby/i, name: "Rugby",
+                  m: { fat: [8,18], note: "Back 8–12% · Forward (forward pak) 12–18%" },
+                  f: { fat: [16,24], note: "Back 16–20% · Forward 18–24%"} },
+                { kw: /tenis/i, name: "Tenis",
+                  m: { fat: [8,14], note: "Elit 8–12% · Rekreasyonel 10–14%" },
+                  f: { fat: [14,20], note: "Elit 14–17% · Rekreasyonel 17–20%"} },
+                { kw: /triatlon|triathlete/i, name: "Triatlon",
+                  m: { fat: [6,11], note: "Sprint/Olimpik 6–10% · Ironman 8–11%" },
+                  f: { fat: [12,18], note: "Sprint 12–15% · Ironman 15–18%"} },
+                { kw: /boks|boxing|mma|kickbox/i, name: "Boks / MMA",
+                  m: { fat: [5,12], note: "Siklet yönetimi: yarışma öncesi minimum %5'in altı önerilmez" },
+                  f: { fat: [12,18], note: "Güvenli minimum %12"} },
+            ];
+
+            const match = DB.find(d => d.kw.test(sport));
+            if (!match) { el.classList.add("hidden"); return; }
+
+            const ref = sx === "0" ? match.m : match.f;
+            const isFatOk = bf >= ref.fat[0] && bf <= ref.fat[1];
+            const isFatLow = bf < ref.fat[0];
+            const isFatHigh = bf > ref.fat[1];
+
+            const fatStatus = isFatOk
+                ? `<span class="text-emerald-700 font-black">✅ Hedef aralıkta (${f(ref.fat[0])}–${f(ref.fat[1])}%)</span>`
+                : isFatLow
+                    ? `<span class="text-rose-600 font-black">⚠️ Hedef aralığın ALTINDA! Min: %${ref.fat[0]} — hormonal risk</span>`
+                    : `<span class="text-amber-700 font-black">⬆️ Hedef aralığın üstünde (${f(ref.fat[0])}–${f(ref.fat[1])}%) — definasyon süreci değerlendirin</span>`;
+
+            el.classList.remove("hidden");
+            if (lbl) lbl.textContent = match.name;
+            if (cont) cont.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <p class="text-[10px] font-bold text-indigo-800 uppercase">Hedef Yağ Aralığı (${sx==="0"?"Erkek":"Kadın"})</p>
+                        <p class="font-bold text-indigo-900 mt-0.5">%${ref.fat[0]} – %${ref.fat[1]}</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">${ref.note}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-indigo-800 uppercase">Mevcut Durum (%${f(bf,1)} vücut yağı)</p>
+                        <p class="mt-0.5 text-xs">${fatStatus}</p>
+                    </div>
+                </div>
+                <div class="border-t border-indigo-200 pt-2 mt-1 text-[10px] text-indigo-700 leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-indigo-500"></i>
+                    BIA ölçümleri hidrasyon durumuna göre ±2–3% sapabilir. Sabah aç karnına, spordan sonra >4 sa, menstrüal faz ortasında ölçüm daha doğru sonuç verir.
+                </div>
+            `;
+        }
+
+        function renderAIS() {
+            const kg = N("kg") || 70;
+            $("ais-kg-display").innerText = f(kg, 1);
+            const sport = ($("cnt_sport") ? $("cnt_sport").value : "").toLowerCase();
+            const srpeScore = N("srpe") || 0;
+            const dur = N("dur") || 60;
+            const brg = N("brg") || 13;
+
+            // Branş sınıflandırması
+            const isTeam = /futbol|basketbol|voleybol|hentbol|rugby|hockey|su topu|field hockey/i.test(sport);
+            const isPower = /halter|güreş|judo|boks|mma|judocu|powerlifting|ağırlık/i.test(sport);
+            const isEndurance = /koşu|bisiklet|triatlon|yüzme|maraton|atletizm|kros/i.test(sport);
+            const isHighIntensity = brg >= 14 || srpeScore >= 1000;
+            const isLongDuration = dur >= 70;
+            const isHeatSport = /yüzme|bisiklet|triatlon/i.test(sport);
+
+            // ─── Ergojenikler — [ad, doz, zamanlama-html, mekanizma, öncelik(yüksek/orta/düşük), kategoriler] ───
+            const ALL = [
+                {
+                    name: "Kafein",
+                    badge: "AIS Grup A",
+                    dose: `${f(3*kg,0)}–${f(5*kg,0)} mg`,
+                    timing: `<b>Antrenman/Maç öncesi 45–60 dk</b><br><span class="text-slate-400 text-[10px]">Kapsül/tablet tercih edilir · ≥6 mg/kg dozda titremeye dikkat</span>`,
+                    protocol: `Antrenman/maç gününde tek seferlik; uyku kalitesini korumak için saat 14.00 sonrası seanslar için 3 mg/kg ile sınırlayın.`,
+                    mechanism: "MSS uyarımı → RPE azalır, çeviklik ve tepki hızı artar. Adenozin antagonizması ile yorgunluk algısını geciktirir.",
+                    priority: "high",
+                    tags: ["all"]
+                },
+                {
+                    name: "Kreatin Monohidrat",
+                    badge: "AIS Grup A",
+                    dose: `İdame: ${f(Math.max(3, 0.05*kg),1)} g/gün${isPower ? ` · Yükleme (isteğe bağlı): 20g/gün × 5 gün, ardından ${f(Math.max(3,0.05*kg),1)} g/gün` : ''}`,
+                    timing: `<b>Günün herhangi bir öğünüyle</b> (yemek sonrası emilim ↑)<br><span class="text-slate-400 text-[10px]">Antrenman sonrası alım tercih edilebilir · Yükleme: gün içine 4 eşit doza bölün</span>`,
+                    protocol: `Her gün düzenli alım (kreatin depolarını dolu tutmak için kesintisizlik şarttır). Bol su içilmeli.`,
+                    mechanism: "Kas içi PCr depolarını artırır → kısa süreli patlayıcı güç, tekrarlı sprint kapasitesi ve yüksek yoğunluklu antrenman hacmi iyileşir.",
+                    priority: "high",
+                    tags: ["all"]
+                },
+                {
+                    name: "Beta-Alanin",
+                    badge: "AIS Grup A",
+                    dose: `${f(Math.max(3.2, 0.065*kg),1)} g/gün — ${f(Math.max(0.8, 0.065*kg/4),1)} g × 4 doz`,
+                    timing: `<b>Sabah, Öğle, İkindi, Akşam</b> (her 4–6 saatte bir, yemekle)<br><span class="text-slate-400 text-[10px]">Yemekle alınması parestezi (karıncalanma) riskini azaltır · Monodoz kaçınılmalı</span>`,
+                    protocol: `En az 4 hafta düzenli kullanım gerekir (kas karnozini birikimi kümülatiftir). Antrenman günlerine özel değil, her gün kullanılır.`,
+                    mechanism: "Kas karnozinini artırarak H⁺ birikimini tamponlar → yüksek yoğunluklu çalışmalarda (Borg ≥14) yorgunluğu geciktirir.",
+                    priority: isHighIntensity ? "high" : "medium",
+                    tags: ["team","power","endurance","hiit"]
+                },
+                {
+                    name: "Diyet Nitrat (Pancar Suyu / Konsantrai)",
+                    badge: "AIS Grup A",
+                    dose: `~${f(8*kg,0)} mg nitrat · ${f(Math.round(kg*1.5/50)*50,0)}–${f(Math.round(kg*2.5/50)*50,0)} mL pancar konsantresi`,
+                    timing: `<b>Maç/Antrenman öncesi 2–3 saat</b><br><span class="text-slate-400 text-[10px]">Kafeinle birlikte alınmamalı (kafein NO biyoyararlanımını azaltır) · Ağız gargarası yöntemi de etkilidir</span>`,
+                    protocol: `Maç haftasında: MD-2'den başlayarak MD+1'e kadar günde 1 doz. Antrenman periyodunda etkinlik testinin 5. gününden itibaren gözlemlenir.`,
+                    mechanism: "Nitrit → NO dönüşümü; tip II kas liflerinde O₂ maliyetini düşürür, mitokondriyal verim ve yüksek şiddetli dayanıklılık kapasitesi artar.",
+                    priority: isEndurance || isTeam ? "high" : "medium",
+                    tags: ["endurance","team"]
+                },
+                {
+                    name: "Sodyum Bikarbonat",
+                    badge: "AIS Grup A",
+                    dose: `${f(0.2*kg,1)}–${f(0.3*kg,1)} g (${f(0.3*kg*1000,0)} mg)`,
+                    timing: `<b>Antrenman/Maç öncesi 60–90 dk</b>, 0.5–1 L su + CHO ile<br><span class="text-slate-400 text-[10px]">GİS hassasiyeti → önce düşük dozla test edin · İlk alım antrenmanda yapılmamalı</span>`,
+                    protocol: `Patlayıcı interval seansları ve >60 sn yüksek yoğunluklu etkinlikler için. Maç öncesi ilk kez denenmemelidir. Sodyum yüküne (hipertansiyon vb.) dikkat.`,
+                    mechanism: "Ekstrasellüler HCO₃⁻ tampon kapasitesini artırır → laktat ve H⁺ uzaklaştırılması hızlanır → yüksek yoğunluklu performans süresi uzar.",
+                    priority: isHighIntensity && dur < 90 ? "high" : "medium",
+                    tags: ["power","team","hiit"]
+                },
+                {
+                    name: "Sitrülin Malat (2:1)",
+                    badge: "AIS Grup A",
+                    dose: `${f(Math.max(6, 0.08*kg),1)}–${f(Math.max(8, 0.1*kg),1)} g`,
+                    timing: `<b>Antrenman öncesi 60 dk</b><br><span class="text-slate-400 text-[10px]">Aç ya da hafif karbonhidratlı ile · Beta-alanin veya kreatin ile kombinasyon desteklenir</span>`,
+                    protocol: `Direnç antrenmanı ve uzun süreli karmaşık seanslar için tercih edilir. Günde tek doz pre-workout zamanlaması yeterlidir.`,
+                    mechanism: "Arjinin ve NO sentezini artırır; amonyak uzaklaştırılmasını hızlandırır, egzersiz sonrası kas ağrısını (DOMS) azaltır.",
+                    priority: isPower || isTeam ? "medium" : "low",
+                    tags: ["power","team"]
+                },
+                {
+                    name: "Gliserol (Hiperhidrasyon)",
+                    badge: "AIS Grup A",
+                    dose: `${f(1.2*kg,1)} g Gliserol + ${f(26*kg,0)} mL sıvı`,
+                    timing: `<b>Seans öncesi 90–120 dk</b> (yavaş iç, 20–30 dk aralıklı)<br><span class="text-slate-400 text-[10px]">Sadece sıcak/nemli ortam ve uzun süreli etkinlikler için</span>`,
+                    protocol: `Sıcak havada >75 dk sürecek antrenman/maçlar öncesinde. Vücut ağırlığında geçici artış (~0.5–1 kg) beklenebilir.`,
+                    mechanism: "Plazma osmolalitesini artırarak vücutta ekstra sıvı tutulumunu sağlar; dehidrasyon başlangıcını ve çekirdek sıcaklığı artışını geciktirir.",
+                    priority: isLongDuration && (isEndurance || isTeam) ? "high" : "low",
+                    tags: ["endurance","team","heat"]
+                }
+            ];
+
+            // Öncelik sıralaması: high → medium → low
+            const priority = { high: 0, medium: 1, low: 2 };
+            ALL.sort((a, b) => priority[a.priority] - priority[b.priority]);
+
+            const colorMap = { high: "text-emerald-700 bg-emerald-50 border-emerald-200", medium: "text-amber-700 bg-amber-50 border-amber-200", low: "text-slate-500 bg-slate-50 border-slate-200" };
+            const labelMap = { high: "⭐ Öncelikli", medium: "Opsiyonel", low: "Düşük Öncelik" };
+
+            const tbody = $("spt");
+            if (!tbody) return;
+            tbody.innerHTML = ALL.map(r => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                    <td class="p-3 align-top">
+                        <p class="font-black text-slate-800 text-xs">${r.name}</p>
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 mt-0.5 inline-block">${r.badge}</span>
+                        <br><span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${colorMap[r.priority]} mt-1 inline-block">${labelMap[r.priority]}</span>
+                    </td>
+                    <td class="p-3 font-black text-emerald-700 text-xs align-top bg-emerald-50/30">${r.dose}</td>
+                    <td class="p-3 text-xs align-top space-y-1">
+                        <div class="text-slate-800 leading-snug">${r.timing}</div>
+                        <div class="text-[10px] text-indigo-700 font-semibold leading-snug border-t border-indigo-100 pt-1 mt-1">${r.protocol}</div>
+                    </td>
+                    <td class="p-3 text-[11px] text-slate-600 align-top leading-relaxed">${r.mechanism}</td>
+                </tr>
+            `).join("");
+        }
+
+        function generateReport() {
+            const container = $("rpt");
+            if (!container) return;
+
+            const name = $("cn").value.trim() || "Danışan";
+            const sport = $("cnt_sport").value || "Spor Branşı Belirtilmedi";
+            const kg = N("kg"), cm = N("cm"), ya = N("ya"), bf = N("bf");
+            const tee = $("tee") ? $("tee").innerText : "–";
+            const cho = $("c1") ? $("c1").innerText : "–";
+            const pro = $("p1") ? $("p1").innerText : "–";
+            const fat = $("f1") ? $("f1").innerText : "–";
+            const srpe = $("srpe") ? $("srpe").innerText : "–";
+            const srpeCat = $("srpe_cat") ? $("srpe_cat").innerText : "–";
+            const writtenMenu = $("written_menu") ? $("written_menu").value.trim() : "";
+            const clientNotes = $("client_notes") ? $("client_notes").value.trim() : "";
+
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    <!-- Başlık & Danışan Künyesi -->
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900">${name}</h2>
+                            <p class="text-xs text-emerald-700 font-bold mt-0.5">${sport} · Performans & Beslenme Raporu</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-bold text-slate-500">${new Date().toLocaleDateString("tr-TR")}</p>
+                            <p class="text-[10px] text-slate-400">ASD – Assistant Sport Dietitian v3.1</p>
+                        </div>
+                    </div>
+
+                    <!-- Biyometri & Antrenman Yükü Özeti -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <p class="text-slate-400 font-bold">Vücut Yapısı</p>
+                            <p class="font-black text-slate-800 text-sm mt-0.5">${kg} kg · ${cm} cm</p>
+                            <p class="text-[10px] text-slate-500">Yağ: %${bf} (FFM: ${$("ffm") ? $("ffm").innerText : ''})</p>
+                        </div>
+                        <div class="bg-rose-50 p-3 rounded-xl border border-rose-200">
+                            <p class="text-rose-800 font-bold">sRPE Seans Yükü</p>
+                            <p class="font-black text-rose-900 text-sm mt-0.5">${srpe} AU</p>
+                            <p class="text-[10px] text-rose-700">${srpeCat}</p>
+                        </div>
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                            <p class="text-emerald-800 font-bold">Hedef Enerji (TEE)</p>
+                            <p class="font-black text-emerald-900 text-sm mt-0.5">${tee}</p>
+                            <p class="text-[10px] text-emerald-700">RMR: ${$("mif") ? $("mif").innerText : ''}</p>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-200">
+                            <p class="text-indigo-800 font-bold">Makro Hedefleri</p>
+                            <p class="font-black text-indigo-900 text-xs mt-0.5">C: ${cho} | P: ${pro}</p>
+                            <p class="text-[10px] text-indigo-700">Yağ: ${fat}</p>
+                        </div>
+                    </div>
+
+                    <!-- Yazılı Diyet Listesi -->
+                    ${writtenMenu ? `
+                        <div class="space-y-2 border-t pt-4">
+                            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-utensils text-emerald-600"></i> Bireysel Diyet & Beslenme Listesi
+                            </h3>
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs font-mono whitespace-pre-wrap leading-relaxed text-slate-800">
+                                ${writtenMenu}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Klinik Diyetisyen Notları -->
+                    ${clientNotes ? `
+                        <div class="space-y-2 border-t pt-4">
+                            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-notes-medical text-indigo-600"></i> Klinik Diyetisyen Takip Notları
+                            </h3>
+                            <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 text-xs font-mono whitespace-pre-wrap leading-relaxed text-indigo-950">
+                                ${clientNotes}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function sm() {
+            const name = $("cn").value.trim() || "Danışan Seçilmedi";
+            const tee = $("tee") ? $("tee").innerText : "–";
+            const cho = $("c1") ? $("c1").innerText : "–";
+            const pro = $("p1") ? $("p1").innerText : "–";
+
+            $("top-client-name").innerText = name;
+            $("top-summary-text").innerText = `TEE: ${tee} | CHO: ${cho} | Protein: ${pro}`;
+        }
+
+        function save() {
+            const d = {};
+            document.querySelectorAll("input:not([type=file]),select,textarea").forEach(e => {
+                if (e.id) d[e.id] = e.value;
+            });
+            try { localStorage.setItem("sp_d_v26", JSON.stringify(d)); } catch (e) {}
+        }
+
+        function loadState() {
+            try {
+                const rawD = localStorage.getItem("sp_d_v26") || localStorage.getItem("sp_d_v25") || localStorage.getItem("sp_d_v24") || localStorage.getItem("sp_d_v2");
+                const d = JSON.parse(rawD || "{}");
+                for (const k in d) {
+                    if ($(k)) $(k).value = d[k];
+                }
+            } catch (e) {}
+        }
+
+        let CL = [];
+        try {
+            const raw26 = localStorage.getItem("sp_c_v26");
+            const raw25 = localStorage.getItem("sp_c_v25");
+            const raw24 = localStorage.getItem("sp_c_v24");
+            const raw2 = localStorage.getItem("sp_c_v2");
+            CL = JSON.parse(raw26 || raw25 || raw24 || raw2 || "[]");
+            if (!raw26 && CL.length > 0) {
+                try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch(e){}
+            }
+        } catch (e) { CL = []; }
+
+        // ===== Danışan No + Mükerrer Kayıt Önleme (v2.8) =====
+        function normKey(v) {
+            return (v || "").toString().toLocaleLowerCase("tr").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i").replace(/[^a-z0-9]/g, "");
+        }
+        function contactKey(v) {
+            v = (v || "").toString().trim().toLowerCase();
+            if (v.indexOf("@") >= 0) return v;
+            return v.replace(/\D/g, "").slice(-10);
+        }
+        function nextKod() {
+            var n = 0;
+            try { n = parseInt(localStorage.getItem("sp_kod_n") || "0") || 0; } catch (e) {}
+            CL.forEach(function(c) { var m = /^SP-(\d+)$/.exec(c.kod || ""); if (m) n = Math.max(n, parseInt(m[1])); });
+            n++;
+            try { localStorage.setItem("sp_kod_n", String(n)); } catch (e) {}
+            return "SP-" + String(n).padStart(4, "0");
+        }
+        function ensureKods() {
+            var ch = false;
+            CL.forEach(function(c) {
+                if (!c.kod) { c.kod = nextKod(); ch = true; }
+                if (c.pk === undefined) { c.pk = contactKey(c.d && c.d.cphone); ch = true; }
+            });
+            if (ch) { try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {} }
+        }
+        function findDup(ad, contact, exceptId) {
+            var nk = normKey(ad), pk = contactKey(contact);
+            return CL.find(function(c) {
+                if (exceptId && c.id === exceptId) return false;
+                if (pk && c.pk && c.pk === pk) return true;
+                return !!nk && normKey(c.ad) === nk;
+            });
+        }
+        function formKey(item) {
+            return normKey(findNameValue(item)) + "|" + (findValueByKey(item, ["Zaman damgası", "Timestamp", "Tarih"]) || "");
+        }
+        function mergeClients(arr) {
+            var add = 0, upd = 0;
+            arr.forEach(function(x) {
+                if (!x || !x.ad) return;
+                x.h = x.h || [];
+                var e = CL.find(function(c) { return c.id === x.id; }) || findDup(x.ad, (x.d && x.d.cphone) || x.pk || "", "");
+                if (!e) { CL.push(x); add++; return; }
+                var seen = {}, mh = e.h.concat(x.h).filter(function(r) { var k = r.t + "|" + r.kg; if (seen[k]) return false; seen[k] = 1; return true; });
+                var files = (e.files || []).slice();
+                (x.files || []).forEach(function(f) { if (!files.some(function(g) { return g.name === f.name && g.size === f.size; })) files.push(f); });
+                var forms = (e.forms || []).concat(x.forms || []).filter(function(v, i, a) { return a.indexOf(v) === i; });
+                var vseen = {}, mv = (e.v || []).concat(x.v || []).filter(function(r) { if (!r || vseen[r.id]) return false; vseen[r.id] = 1; return true; }).sort(function(a, b) { return (a.ts || 0) - (b.ts || 0); });
+                var rmd = e.remind || x.remind;
+                if ((x.u || 0) > (e.u || 0)) { var keepId = e.id, keepKod = e.kod || x.kod; Object.assign(e, x, { id: keepId, kod: keepKod }); }
+                e.h = mh; e.files = files; e.forms = forms; e.v = mv; if (rmd) e.remind = rmd; upd++;
+            });
+            ensureKods();
+            return { add: add, upd: upd };
+        }
+        ensureKods();
+
+        function renderClientList() {
+            const tbody = $("cl_l");
+            if (!tbody) return;
+            tbody.innerHTML = CL.length ? CL.map(c => `
+                <tr>
+                    <td class="p-3 font-bold text-slate-800">
+                        ${c.ad} <span class="text-[10px] font-mono text-slate-400">${c.kod || ""}</span> ${c.files && c.files.length ? `<span class="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.5 rounded-md ml-1"><i class="fa-solid fa-paperclip"></i> ${c.files.length}</span>` : ''} <br><span class="text-[10px] text-slate-400 font-normal">${c.sport || 'Sporcu'} · ${c.tarih}</span>
+                    </td>
+                    <td class="p-3 font-semibold text-emerald-700">${c.hedef}</td>
+                    <td class="p-3 text-slate-600">${c.h.slice(-3).map(x => x.kg + "kg").join(" → ")}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="loadClient('${c.id}')" class="bg-emerald-50 text-emerald-700 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-emerald-200 hover:bg-emerald-100">Aç</button>
+                        <button onclick="deleteClient('${c.id}')" class="bg-rose-50 text-rose-700 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-rose-200 hover:bg-rose-100">Sil</button>
+                    </td>
+                </tr>
+            `).join("") : `<tr><td colspan="4" class="p-4 text-center text-slate-400">Henüz kayıtlı danışan yok.</td></tr>`;
+        }
+
+        window.loadClient = function(id) {
+            const c = CL.find(x => x.id === id);
+            if (c) {
+                if (window.__clearVisitFields) window.__clearVisitFields(); for (const k in c.d) if ($(k) && k !== "drive_webhook_url") $(k).value = c.d[k];
+                currentClientFiles = c.files || [];
+                renderClientFiles();
+                $("cid").value = c.id;
+                if ($("cphone")) $("cphone").value = (c.d && c.d.cphone) || "";
+                if ($("ckod")) $("ckod").value = c.kod || "";
+                $("cn").value = c.ad;
+                calc(); sm(); save();
+                if (window.Visits) setTimeout(Visits.onClientLoaded, 30);
+                if ($("cmsg")) $("cmsg").innerText = "Açıldı: " + c.ad;
+                switchTab('en');
+            }
+        };
+
+        window.deleteClient = function(id) {
+            if (confirm("Bu danışan kaydını silmek istediğinize emin misiniz?")) {
+                CL = CL.filter(x => x.id !== id);
+                try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {}
+                renderClientList();
+            initFormFetcher();
+            }
+        };
+
+        
+        // Apps Script Web App'ten Canlı Form Yanıtı Çekme
+        var FORM_RESPONSES_DATA = [];
+
+        function initFormFetcher() {
+            var DEFAULT_FORM_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwskYj5nKpau9mQGKTsVwXxSrWJTlrb1Rt88heGPWLjfgSq6p03jYQMSjOAPDWzeNQGA/exec";
+            var savedUrl = localStorage.getItem("sp_sheet_webapp_url_v29") || DEFAULT_FORM_SCRIPT_URL;
+            if ($("sheet_webapp_url")) $("sheet_webapp_url").value = savedUrl;
+
+            if ($("btn_fetch_form_responses")) {
+                $("btn_fetch_form_responses").onclick = function() {
+                    var url = $("sheet_webapp_url").value.trim();
+                    if (!url) {
+                        if ($("fetch_status_msg")) $("fetch_status_msg").innerText = "Lütfen geçerli bir Google Apps Script Web App URL girin.";
+                        return;
+                    }
+                    localStorage.setItem("sp_sheet_webapp_url_v29", url);
+                    if ($("fetch_status_msg")) $("fetch_status_msg").innerText = "⏳ Form yanıtları çekiliyor...";
+
+                    if (/\/dev(\?|$)/.test(url)) {
+                        if ($("fetch_status_msg")) $("fetch_status_msg").innerText = "❌ Bu bir test (/dev) URL'si. Dağıt > Yeni dağıtım yapıp /exec ile biten URL'yi kullanın.";
+                        return;
+                    }
+                    fetch(url, { method: "GET", redirect: "follow" })
+                        .then(function(res) { return res.text(); })
+                        .then(function(txt) {
+                            var data;
+                            try { data = JSON.parse(txt); } catch (e) { throw new Error("NOT_JSON"); }
+                            if (data && !Array.isArray(data)) data = data.data || data.rows || data.values || data.responses || data;
+                            if (Array.isArray(data) && data.length > 1 && Array.isArray(data[0])) {
+                                var hdr = data[0];
+                                data = data.slice(1).map(function(r) { var o = {}; hdr.forEach(function(h, i) { o[h] = r[i]; }); return o; });
+                            }
+                            if (!data || !Array.isArray(data) || data.length === 0) {
+                                if ($("fetch_status_msg")) $("fetch_status_msg").innerText = "⚠️ Henüz gelen form yanıtı bulunamadı.";
+                                return;
+                            }
+                            FORM_RESPONSES_DATA = data;
+                            populateFormClientSelect(data);
+                            if ($("fetch_status_msg")) $("fetch_status_msg").innerText = "✔ " + data.length + " adet form yanıtı başarıyla çekildi!";
+                            if ($("form_select_container")) $("form_select_container").classList.remove("hidden");
+                        })
+                        .catch(function(err) {
+                            console.error(err);
+                            if ($("fetch_status_msg")) $("fetch_status_msg").innerText = (err && err.message === "NOT_JSON")
+                                ? "❌ Web App JSON yerine başka bir sayfa döndürdü (genelde Google giriş sayfası). Dağıtımda 'Erişimi olan kişi: Herkes' seçin ve /exec ile biten URL'yi kullanın."
+                                : "❌ Yanıtlar çekilemedi. URL'nin /exec ile bittiğini, erişimin 'Herkes' olduğunu ve internet bağlantısını kontrol edin.";
+                        });
+                };
+            }
+
+            if ($("form_client_select")) {
+                $("form_client_select").onchange = function() {
+                    var idx = parseInt(this.value);
+                    if (isNaN(idx) || idx < 0 || !FORM_RESPONSES_DATA[idx]) return;
+                    applyFormResponseData(FORM_RESPONSES_DATA[idx]);
+                };
+            }
+        }
+
+        function populateFormClientSelect(data) {
+            var sel = $("form_client_select");
+            if (!sel) return;
+            sel.innerHTML = '<option value="">-- Danışan Seçiniz --</option>';
+
+            data.forEach(function(item, idx) {
+                var name = findNameValue(item) || ("Danışan " + (idx + 1));
+                var date = findValueByKey(item, ["Zaman damgası", "Timestamp", "Tarih"]) || "";
+                var sport = findValueByKey(item, ["Yaptığınız Spor, Dans veya Aktif Hareketlilik (Branş)", "Branş", "Spor"]) || "";
+                
+                var label = name + (sport ? " (" + sport + ")" : "") + (date ? " - " + date : "");
+                var done = CL.some(function(c) { return (c.forms || []).indexOf(formKey(item)) >= 0; });
+                var dp = findDup(name, findValueByKey(item, ["Telefon", "Cep", "GSM", "E-posta", "Eposta", "Mail"]) || "", "");
+                label = (done ? "✔ Kayıtlı · " : (dp ? "↻ Mevcut (" + dp.kod + ") · " : "")) + label;
+                var opt = document.createElement("option");
+                opt.value = idx;
+                opt.textContent = label;
+                sel.appendChild(opt);
+            });
+        }
+
+        // Ad Soyad sütununu güvenle bulur ("E-posta Adresi" gibi sütunlarla karışmaz)
+        function findNameValue(obj) {
+            if (!obj) return "";
+            var bad = /posta|mail|adres|telefon|tel\b|gsm|cep|kullanıcı|kullanici/i;
+            var pats = [/^\s*ad[ıi]?\s*(ve|-|\/)?\s*soyad[ıi]?/i, /ad[ıi]?\s*(ve\s*)?soyad/i, /^\s*(ad[ıi]n[ıi]z|isim|ismi|name|full\s*name)\b/i, /isim|name/i, /^\s*ad[ıi]?\s*[:?]?\s*$/i];
+            for (var i = 0; i < pats.length; i++) {
+                for (var key in obj) {
+                    if (bad.test(key) || !pats[i].test(key)) continue;
+                    var v = String(obj[key] == null ? "" : obj[key]).trim();
+                    if (v && v.indexOf("@") < 0) return v;
+                }
+            }
+            return "";
+        }
+
+        function findValueByKey(obj, possibleKeys) {
+            if (!obj) return "";
+            for (var key in obj) {
+                for (var i = 0; i < possibleKeys.length; i++) {
+                    if (key.toLowerCase().includes(possibleKeys[i].toLowerCase())) {
+                        return obj[key];
+                    }
+                }
+            }
+            return "";
+        }
+
+        function applyFormResponseData(item) {
+            // Ad Soyad
+            var name = findNameValue(item) || "";
+            if (name && $("cn")) $("cn").value = name;
+            var contact = findValueByKey(item, ["Telefon", "Cep", "GSM", "E-posta", "Eposta", "Mail"]) || "";
+            if ($("cphone")) $("cphone").value = contact;
+            var dupF = findDup(name, contact, "");
+            if ($("cid")) $("cid").value = dupF ? dupF.id : "";
+            if ($("ckod")) $("ckod").value = dupF ? dupF.kod : "";
+            currentClientFiles = dupF ? (dupF.files || []) : [];
+            renderClientFiles();
+            window.LAST_FORM_KEY = formKey(item);
+
+            // Cinsiyet
+            var gender = findValueByKey(item, ["Cinsiyet"]) || "";
+            if ($("sx")) {
+                if (gender.toLowerCase().includes("kadın") || gender.toLowerCase().includes("kadin") || gender.toLowerCase().includes("female")) {
+                    if($("sx")) $("sx").value = "1"; if($("cn_sx")) $("cn_sx").value = "1";
+                } else if (gender.toLowerCase().includes("erkek") || gender.toLowerCase().includes("male")) {
+                    if($("sx")) $("sx").value = "0"; if($("cn_sx")) $("cn_sx").value = "0";
+                }
+            }
+
+            // Boy
+            var height = findValueByKey(item, ["Boy"]) || "";
+            if (height && $("cm")) $("cm").value = parseFloat(height) || $("cm").value;
+
+            // Kilo
+            var weight = findValueByKey(item, ["Ağırlık", "Kilo"]) || "";
+            if (weight && $("kg")) $("kg").value = parseFloat(weight) || $("kg").value;
+
+            // Vücut Yağ %
+            var bf = findValueByKey(item, ["Yağ", "Vücut Yağ"]) || "";
+            if (bf && $("bf")) $("bf").value = parseFloat(bf) || $("bf").value;
+
+            // Spor Branşı
+            var sport = findValueByKey(item, ["Branş", "Spor"]) || "";
+            if (sport && $("cnt_sport")) $("cnt_sport").value = sport;
+
+            // Antrenman Süresi
+            var duration = findValueByKey(item, ["Süre", "Seans Süresi"]) || "";
+            if (duration && $("dur")) $("dur").value = parseFloat(duration) || $("dur").value;
+
+            // Borg RPE (6-20)
+            var borgStr = findValueByKey(item, ["Borg", "Zorluk"]) || "";
+            if (borgStr && $("brg")) {
+                var match = borgStr.match(/\d+/);
+                if (match) $("brg").value = parseInt(match[0]);
+            }
+
+            // 24 Saatlik Beslenme Kaydı
+            var recall = findValueByKey(item, ["24 Saatlik", "Dün sabahtan", "Neler yediğinizi"]) || "";
+            if (recall && $("written_menu")) $("written_menu").value = recall;
+
+            // Klinik Notlar (Alerji, Hastalık, Uyku, Sindirim)
+            var allergy = findValueByKey(item, ["Alerji"]) || "";
+            var disease = findValueByKey(item, ["Hastalık", "İlaç", "Takviye"]) || "";
+            var sleep = findValueByKey(item, ["Kaçta uyanıyor", "uyuyorsunuz"]) || "";
+            var gis = findValueByKey(item, ["İshal", "Kabızlık", "Midenizdeki"]) || "";
+            var goal = findValueByKey(item, ["Neden bir beslenme", "ihtiyaç"]) || "";
+
+            var notesArr = [];
+            if (goal) notesArr.push("🎯 Hedef/Neden: " + goal);
+            if (allergy) notesArr.push("⚠️ Alerji: " + allergy);
+            if (disease) notesArr.push("🏥 Sağlık/İlaç: " + disease);
+            if (sleep) notesArr.push("⏰ Uyku Ritim: " + sleep);
+            if (gis) notesArr.push("🩺 GİS/Sindirim: " + gis);
+
+            if (notesArr.length > 0 && $("client_notes")) {
+                $("client_notes").value = notesArr.join("\n");
+            }
+
+            calc(); sm(); save();
+            if ($("fetch_status_msg")) $("fetch_status_msg").innerText = "✔ " + (name || "Danışan") + " verileri aktarıldı! " + (dupF ? "Mevcut kayıt (" + dupF.kod + ") güncellenecek." : "Yeni danışan olarak kaydedilecek.");
+        }
+
+        
+        // Tanita / BIA PDF Parsing Engine via PDF.js & Regex
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join("\n");
+                fullText += pageText + "\n";
+            }
+            return fullText;
+        }
+
+        function parseAndApplyTanitaBIA(text) {
+            if (!text || !text.trim()) return { success: false };
+            let data = {};
+
+            // 1. Tartı / Tanita Block Layout Detection (Header Block followed by Value Block)
+            const mBlock = text.match(/Adı\s*Soyadı\s*\n\s*Cinsiyet\s*\n(?:\s*Vücut\s*Tipi\s*\n)?\s*Yaş\s*\n\s*Kilo[^\n]*\n\s*Boy[^\n]*\n(?:\s*BMI[^\n]*\n)?([\s\S]*?)(?:Hazırlayan|Yağsız|TARTI|$)/i);
+            if (mBlock) {
+                const valBlock = mBlock[1].trim();
+                const lines = valBlock.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                if (lines.length >= 4) {
+                    data.name = lines[0];
+                    if (/Bayan|Kadın|Female/i.test(lines[1])) data.gender = "1";
+                    else if (/Erkek|Male/i.test(lines[1])) data.gender = "0";
+
+                    let idx = 2;
+                    if (!/^\d+[\.,]?\d*$/.test(lines[idx])) {
+                        data.bodyType = lines[idx];
+                        idx++;
+                    }
+                    if (idx < lines.length && /^\d+$/.test(lines[idx])) {
+                        data.age = parseInt(lines[idx]);
+                        idx++;
+                    }
+                    if (idx < lines.length) {
+                        const w = parseFloat(lines[idx].replace(',', '.'));
+                        if (!isNaN(w)) data.weight = w;
+                        idx++;
+                    }
+                    if (idx < lines.length) {
+                        const h = parseFloat(lines[idx].replace(',', '.'));
+                        if (!isNaN(h)) data.height = h;
+                        idx++;
+                    }
+                }
+            }
+
+            // 2. Direct Key-Value Extraction Fallbacks
+            if (!data.name) {
+                const m = text.match(/(?:Adı\s*Soyadı|Adı|Danışan)[\s:]*([a-zA-ZıİğĞüÜşŞöÖ\s]+)/i);
+                if (m) data.name = m[1].split('\n')[0].trim();
+            }
+            if (data.gender === undefined) {
+                if (/Bayan|Kadın|Female/i.test(text)) data.gender = "1";
+                else if (/Erkek|Male/i.test(text)) data.gender = "0";
+            }
+            if (!data.age) {
+                const m = text.match(/Yaş[\s:]*(\d{1,2})/i);
+                if (m) data.age = parseInt(m[1]);
+            }
+            if (!data.weight) {
+                const m = text.match(/(?:Kilo|Ağırlık)\s*\(?kg\)?[\s:]*([\d\.\,]+)/i);
+                if (m) data.weight = parseFloat(m[1].replace(',', '.'));
+            }
+            if (!data.height) {
+                const m = text.match(/Boy\s*\(?cm\)?[\s:]*([\d\.\,]+)/i);
+                if (m) data.height = parseFloat(m[1].replace(',', '.'));
+            }
+
+            // Fat %, Fat Kg, FFM, Muscle, TBW, BMR
+            const mFatPct = text.match(/Yağ[\s\n|:]*[\d\.\,]+\s*kg\s*\/\s*([\d\.\,]+)\s*%/i) || text.match(/Yağ\s*Oranı[^\d]*([\d\.\,]+)\s*%/i);
+            if (mFatPct) {
+                data.fatPct = parseFloat(mFatPct[1].replace(',', '.'));
+            } else {
+                const mFatKg = text.match(/Yağ[\s\n|:]*([\d\.\,]+)\s*kg/i);
+                if (mFatKg && data.weight) {
+                    data.fatPct = Math.round((parseFloat(mFatKg[1].replace(',', '.')) / data.weight) * 1000) / 10;
+                }
+            }
+
+            const mFatKg = text.match(/Yağ[\s\n|:]*([\d\.\,]+)\s*kg/i);
+            if (mFatKg) data.fatKg = parseFloat(mFatKg[1].replace(',', '.'));
+
+            const mFFM = text.match(/Yağsız\s*Kütle[^\d]*([\d\.\,]+)\s*kg/i);
+            if (mFFM) data.ffm = parseFloat(mFFM[1].replace(',', '.'));
+
+            const mMuscle = text.match(/Kas\s*(?:Kg)?[^\d]*([\d\.\,]+)/i);
+            if (mMuscle) data.muscleKg = parseFloat(mMuscle[1].replace(',', '.'));
+
+            const mTBW = text.match(/Sıvı[^\d]*([\d\.\,]+)\s*kg/i);
+            if (mTBW) data.tbw = parseFloat(mTBW[1].replace(',', '.'));
+
+            const mBMR = text.match(/Bazal\s*Metabolizma\s*Hızı[^\d]*([\d\.\,\s]+)\s*kcal/i);
+            if (mBMR) data.bmr = parseInt(mBMR[1].replace(/[^\d]/g, ''));
+
+            // Apply directly to UI Input Fields
+            let appliedCount = 0;
+            if (data.name && $("cn")) { $("cn").value = data.name; appliedCount++; }
+            if (data.gender !== undefined) { if($("sx")) $("sx").value = data.gender; if($("cn_sx")) $("cn_sx").value = data.gender; appliedCount++; }
+            if (data.age && $("ya")) { $("ya").value = data.age; appliedCount++; }
+            if (data.weight && $("kg")) { $("kg").value = data.weight; appliedCount++; }
+            if (data.height && $("cm")) { $("cm").value = data.height; appliedCount++; }
+            if (data.fatPct !== undefined && $("bf")) { $("bf").value = data.fatPct; appliedCount++; }
+
+            // Automatically select Cunningham (FFM) formula in Tab 2 if FFM exists
+            if (data.ffm && $("eq")) {
+                $("eq").value = "1"; // Cunningham formula index
+            }
+
+            calc(); sm(); save();
+
+            // Render BIA Summary Card
+            renderBIACard(data);
+
+            // Automatically Add BIA Note to Clinician Notes
+            addBIANoteToClinicianNotes(data);
+
+            return { success: appliedCount > 0, data: data };
+        }
+
+        function renderBIACard(data) {
+            const cardContainer = $("bia_summary_card");
+            if (!cardContainer) return;
+
+            const ffm = data.ffm || (data.weight && data.fatPct ? (data.weight * (1 - data.fatPct / 100)) : null);
+            const cunRMR = ffm ? (500 + 22 * ffm) : null;
+
+            cardContainer.classList.remove("hidden");
+            cardContainer.innerHTML = `
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-2xl border border-indigo-500/40 shadow-md space-y-3">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-indigo-800/60 pb-2">
+                        <p class="font-black text-xs text-indigo-300 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-amber-400"></i> BIA Vücut Kompozisyonu Analiz Kartı (${data.name || 'Danışan'})
+                        </p>
+                        <button onclick="autoPlanMenuFromBIA()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl transition shadow-lg flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> BIA'ya Göre Menü & Değişim Planla
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
+                        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-slate-400">Ağırlık</p>
+                            <p class="font-black text-white text-sm mt-0.5">${data.weight ? data.weight + ' kg' : '–'}</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-amber-400">Vücut Yağı %</p>
+                            <p class="font-black text-amber-300 text-sm mt-0.5">${data.fatPct ? '%' + data.fatPct : '–'}</p>
+                            <p class="text-[9px] text-slate-400">${data.fatKg ? data.fatKg + ' kg' : ''}</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-emerald-400">Yağsız Kütle (FFM)</p>
+                            <p class="font-black text-emerald-300 text-sm mt-0.5">${ffm ? f(ffm, 1) + ' kg' : '–'}</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-indigo-400">Kas Kütlesi</p>
+                            <p class="font-black text-indigo-300 text-sm mt-0.5">${data.muscleKg ? data.muscleKg + ' kg' : '–'}</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-cyan-400">Sıvı (TBW)</p>
+                            <p class="font-black text-cyan-300 text-sm mt-0.5">${data.tbw ? data.tbw + ' kg' : '–'}</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-purple-400">Cunningham RMR</p>
+                            <p class="font-black text-purple-300 text-sm mt-0.5">${cunRMR ? f(cunRMR) + ' kcal' : '–'}</p>
+                            <p class="text-[9px] text-slate-400">Cihaz: ${data.bmr ? data.bmr + ' kcal' : '–'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addBIANoteToClinicianNotes(data) {
+            const notesEl = $("client_notes");
+            if (!notesEl) return;
+
+            const dateStr = new Date().toLocaleDateString("tr-TR");
+            const ffm = data.ffm || (data.weight && data.fatPct ? (data.weight * (1 - data.fatPct / 100)) : null);
+            const cunRMR = ffm ? Math.round(500 + 22 * ffm) : null;
+
+            const biaNote = 
+`=== TANİTA / BIA VÜCUT KOMPOZİSYONU DEĞERLENDİRMESİ (${dateStr}) ===
+• Ağırlık / Boy / Yaş: ${data.weight || '–'} kg | ${data.height || '–'} cm | ${data.age || '–'} Yaş
+• Vücut Yağ Oranı: %${data.fatPct || '–'} (${data.fatKg || '–'} kg)
+• Yağsız Kütle (FFM): ${ffm ? f(ffm, 1) + ' kg' : '–'} | Kas Kütlesi: ${data.muscleKg || '–'} kg
+• Vücut Sıvısı (TBW): ${data.tbw || '–'} kg
+• RMR (Cunningham - FFM Bazlı): ${cunRMR ? cunRMR + ' kcal' : '–'} | Cihaz BMR: ${data.bmr || '–'} kcal
+• Önerilen FFM Bazlı Protein Alımı: 2.0 - 2.2 g/kg FFM (~${ffm ? Math.round(2.0 * ffm) + '-' + Math.round(2.2 * ffm) : '–'} g P)`;
+
+            const existing = notesEl.value.trim();
+            if (!existing.includes("TANİTA / BIA VÜCUT KOMPOZİSYONU DEĞERLENDİRMESİ")) {
+                notesEl.value = biaNote + (existing ? "\n\n" + existing : "");
+            }
+        }
+
+        window.autoPlanMenuFromBIA = function() {
+            calc();
+            const kg = N("kg") || 50.6;
+            const tee = N("tee") || parseInt($("tee").innerText) || 2386;
+            const targetCho = kg * N("cg");
+            const targetPro = kg * N("pg");
+            const targetFat = Math.max(0, (tee - 4 * targetCho - 4 * targetPro) / 9);
+
+            // Clear existing exchange table
+            EX.forEach((e, i) => {
+                ML.forEach((m, j) => {
+                    const input = $(`m${i}_${j}`);
+                    if (input) input.value = '';
+                });
+            });
+
+            // 1. Süt (Yarım Yağlı - EX 1): 1 at Ara 1, 1 at Ara 3
+            if ($("m1_1")) $("m1_1").value = 1;
+            if ($("m1_5")) $("m1_5").value = 1;
+
+            // 2. Sebze (EX 5): 1 Kahvaltı, 1 Öğle, 1 Akşam
+            if ($("m5_0")) $("m5_0").value = 1;
+            if ($("m5_2")) $("m5_2").value = 1;
+            if ($("m5_4")) $("m5_4").value = 1;
+
+            // 3. Meyve (EX 6): 1 Ara 1, 1 Ara 2
+            if ($("m6_1")) $("m6_1").value = 1;
+            if ($("m6_3")) $("m6_3").value = 1;
+
+            // 4. Et / Peynir / Yumurta (EX 3)
+            const basePro = (2 * 6) + (3 * 2);
+            const remPro = Math.max(0, targetPro - basePro);
+            const meatServings = Math.round((remPro / 6) * 2) / 2;
+            
+            const meatKahvalti = Math.min(meatServings, 2);
+            const meatLunchAndDinner = Math.max(0, meatServings - meatKahvalti);
+            if ($("m3_0")) $("m3_0").value = meatKahvalti;
+            if ($("m3_2")) $("m3_2").value = Math.round((meatLunchAndDinner / 2) * 2) / 2;
+            if ($("m3_4")) $("m3_4").value = Math.round((meatLunchAndDinner / 2) * 2) / 2;
+
+            // 5. Karbonhidrat (Ekmek/Tahıl - EX 4)
+            const baseCho = (2 * 9) + (3 * 6) + (2 * 15);
+            const remCho = Math.max(0, targetCho - baseCho);
+            const grainServings = Math.round((remCho / 15) * 2) / 2;
+
+            const grainKahvalti = 2;
+            const grainRem = Math.max(0, grainServings - grainKahvalti);
+            if ($("m4_0")) $("m4_0").value = grainKahvalti;
+            if ($("m4_2")) $("m4_2").value = Math.round((grainRem * 0.4) * 2) / 2;
+            if ($("m4_4")) $("m4_4").value = Math.round((grainRem * 0.4) * 2) / 2;
+            if ($("m4_3")) $("m4_3").value = Math.round((grainRem * 0.2) * 2) / 2;
+
+            // 6. Yağ (EX 7)
+            const currentFat = (2 * 3) + (meatServings * 5);
+            const remFat = Math.max(0, targetFat - currentFat);
+            const fatServings = Math.round((remFat / 5) * 2) / 2;
+
+            if ($("m7_0")) $("m7_0").value = 1;
+            if ($("m7_2")) $("m7_2").value = Math.round((fatServings / 2) * 2) / 2;
+            if ($("m7_4")) $("m7_4").value = Math.round((fatServings / 2) * 2) / 2;
+
+            calc(); sm(); save();
+            if (window.ExchangeMenu) ExchangeMenu.sync("plan", false);
+            switchTab("dg");
+            window.scrollTo(0, 0);
+        };
+
+        function initTanitaBIA() {
+            const pdfInput = $("tanita_pdf_input");
+            const textInput = $("tanita_text_input");
+            const btnParse = $("btn_parse_tanita_text");
+            const msg = $("tanita_status_msg");
+
+            if (pdfInput) {
+                pdfInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (msg) msg.innerText = "⏳ Tanita PDF raporu taranıyor...";
+                    try {
+                        let text = "";
+                        if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+                            text = await extractTextFromPDF(file);
+                        } else {
+                            if (msg) msg.innerText = "⚠️ PDF dosyası seçiniz.";
+                            return;
+                        }
+                        const res = parseAndApplyTanitaBIA(text);
+                        if (res.success) {
+                            if (msg) msg.innerText = `✔ ${res.data.name || 'Danışan'} Tanita BIA verileri aktarıldı! (Kilo: ${res.data.weight || '–'}kg, Boy: ${res.data.height || '–'}cm, Yağ: %${res.data.fatPct || '–'})`;
+                            
+                            // Save file to currentClientFiles if present
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                currentClientFiles.push({
+                                    id: Date.now().toString(36),
+                                    name: file.name,
+                                    size: (file.size / 1024).toFixed(1) + " KB",
+                                    type: file.type,
+                                    data: evt.target.result,
+                                    date: new Date().toLocaleDateString("tr-TR")
+                                });
+                                renderClientFiles();
+                                save();
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            if (msg) msg.innerText = "⚠️ BIA verileri okunamadı. Lütfen metin alanına yapıştırmayı deneyin.";
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        if (msg) msg.innerText = "❌ PDF ayrıştırma hatası. Lütfen metin olarak yapıştırın.";
+                    }
+                };
+            }
+
+            if (btnParse && textInput) {
+                btnParse.onclick = () => {
+                    const txt = textInput.value;
+                    if (!txt.trim()) return;
+                    const res = parseAndApplyTanitaBIA(txt);
+                    if (res.success && msg) {
+                        msg.innerText = `✔ Tanita BIA verileri aktarıldı! (${res.data.name || 'Danışan'}, ${res.data.weight || ''}kg, %${res.data.fatPct || ''} Yağ)`;
+                    } else if (msg) {
+                        msg.innerText = "⚠️ Metinde Tanita parametreleri okunamadı.";
+                    }
+                };
+            }
+        }
+
+        function initPWA() {
+            if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+                var hadCtl = !!navigator.serviceWorker.controller;
+                navigator.serviceWorker.addEventListener("controllerchange", function() { if (hadCtl && !window.__swReloaded) { window.__swReloaded = true; location.reload(); } });
+                navigator.serviceWorker.register("sw.js").catch(function() {});
+            }
+            var dp = null;
+            function mk(txt, fn) {
+                var b = document.createElement("button");
+                b.id = "pwa_btn"; b.textContent = txt;
+                b.style.cssText = "position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9999;background:#059669;color:#fff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.25)";
+                b.onclick = fn; document.body.appendChild(b); return b;
+            }
+            window.addEventListener("beforeinstallprompt", function(e) {
+                e.preventDefault(); dp = e;
+                if ($("pwa_btn")) return;
+                mk("📲 Uygulamayı yükle", function() {
+                    dp.prompt();
+                    dp.userChoice.finally(function() { var x = $("pwa_btn"); if (x) x.remove(); dp = null; });
+                });
+            });
+            window.addEventListener("appinstalled", function() { var x = $("pwa_btn"); if (x) x.remove(); });
+            var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            var sa = window.navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+            var seen = false; try { seen = !!localStorage.getItem("sp_ios_tip"); } catch (e) {}
+            if (ios && !sa && !seen) {
+                var b2 = mk("📲 iPhone'a ekle", function() {
+                    alert("Safari'de alttaki Paylaş (↑) simgesine dokunun, ardından 'Ana Ekrana Ekle'yi seçin.");
+                    try { localStorage.setItem("sp_ios_tip", "1"); } catch (e) {}
+                    b2.remove();
+                });
+            }
+        }
+
+        window.onload = function() {
+            initTanitaBIA();
+            renderExchangeTable();
+            loadState();
+            calc();
+            sm();
+            renderClientList();
+            initFormFetcher();
+
+            if ($("cs")) {
+                $("cs").onclick = () => {
+                    const ad = $("cn").value.trim();
+                    if (!ad) { 
+                        if ($("cmsg")) $("cmsg").innerText = "Lütfen ad soyad girin veya doğrudan '2. Adıma Geç' butonunu kullanın."; 
+                        return; 
+                    }
+                    let id = $("cid").value, c = CL.find(x => x.id === id);
+                    if (!c) {
+                        const dup = findDup(ad, $("cphone") ? $("cphone").value : "", "");
+                        if (dup && confirm("Bu danışan zaten kayıtlı: " + dup.ad + " (" + dup.kod + ").\n\nTamam = mevcut kaydı güncelle (yeni kayıt açılmaz)\nİptal = ayrı, yeni bir kayıt oluştur")) {
+                            c = dup; id = dup.id; $("cid").value = id;
+                        }
+                    }
+                    if (!c) {
+                        id = Date.now().toString(36);
+                        c = { id, h: [] };
+                        CL.push(c);
+                        $("cid").value = id;
+                    }
+                    if (!c.kod) c.kod = nextKod();
+                    c.pk = contactKey($("cphone") ? $("cphone").value : "");
+                    if ($("ckod")) $("ckod").value = c.kod;
+                    if (window.LAST_FORM_KEY) { c.forms = c.forms || []; if (c.forms.indexOf(window.LAST_FORM_KEY) < 0) c.forms.push(window.LAST_FORM_KEY); window.LAST_FORM_KEY = null; }
+                    const tr = new Date().toLocaleDateString("tr-TR");
+                    c.ad = ad; c.u = Date.now();
+                    c.sport = $("cnt_sport").value || "Sporcu";
+                    c.hedef = $("cg2") && $("cg2").selectedOptions.length ? $("cg2").selectedOptions[0].text : "Performans";
+                    c.tarih = tr;
+                    const snapData = {};
+                    document.querySelectorAll("input:not([type=file]),select,textarea").forEach(e => { if (e.id) snapData[e.id] = e.value; });
+                    c.d = snapData;
+                    c.files = currentClientFiles || [];
+                    var lastH = c.h[c.h.length - 1];
+                    if (lastH && lastH.t === tr && lastH.kg === N("kg")) c.h.pop();
+                    c.h.push({ t: tr, kg: N("kg"), tee: $("tee") ? $("tee").innerText : '' });
+
+                    try { 
+                        localStorage.setItem("sp_c_v26", JSON.stringify(CL)); 
+                        renderClientList();
+                        if ($("cmsg")) $("cmsg").innerText = "✔ Kaydedildi: " + ad + " (" + c.kod + "). 2. Adıma yönlendiriliyorsunuz...";
+                        setTimeout(() => switchTab('en'), 350);
+                    } catch (e) {
+                        console.error("Storage Error:", e);
+                        if ($("cmsg")) $("cmsg").innerText = "⚠️ Yerel hafıza sınırı! Lütfen eklediğiniz dosya boyutunu küçültün.";
+                    }
+                };
+            }
+
+            if ($("client_file_input")) $("client_file_input").onchange = handleFileUpload;
+            if ($("btn_audit_now")) $("btn_audit_now").onclick = () => { calc(); switchTab("dg"); window.scrollTo(0, $("eval-container").offsetTop - 100); };
+
+            if ($("cnw")) {
+                $("cnw").onclick = () => {
+                    $("cid").value = ""; $("cn").value = ""; $("cnt").value = ""; if ($("cphone")) $("cphone").value = ""; if ($("ckod")) $("ckod").value = ""; window.LAST_FORM_KEY = null; $("cnt_sport").value = ""; currentClientFiles = []; renderClientFiles(); if (window.__clearVisitFields) window.__clearVisitFields(); if (window.Visits) setTimeout(Visits.renderHistory, 30);
+                    if ($("cmsg")) $("cmsg").innerText = "Yeni Danışan Girişi Hazır.";
+                };
+            }
+
+            if ($("cdd")) $("cdd").onclick = () => {
+                if (!confirm("Aynı kişiye ait kayıtlar (aynı telefon/e-posta veya aynı ad-soyad) tek kayıtta birleştirilsin mi?\nKilo geçmişi ve belgeler korunur. Aynı adlı FARKLI kişiler varsa önce telefon/e-posta ekleyin.")) return;
+                const old = CL.slice(); CL = [];
+                old.forEach(x => mergeClients([x]));
+                try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {}
+                renderClientList();
+                if ($("cmsg")) $("cmsg").innerText = "✔ " + (old.length - CL.length) + " mükerrer kayıt birleştirildi. Toplam: " + CL.length;
+            };
+            initPWA();
+            if ($("btn_sample_menu")) $("btn_sample_menu").onclick = loadSampleMenu;
+            if ($("btn_fill_sample_text_menu")) $("btn_fill_sample_text_menu").onclick = loadSampleTextMenu;
+            if ($("btn_gen_report")) $("btn_gen_report").onclick = generateReport;
+
+            if ($("xj_drive")) {
+                $("xj_drive").onclick = () => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(CL, null, 2));
+                    const dlAnchor = document.createElement('a');
+                    dlAnchor.setAttribute("href", dataStr);
+                    dlAnchor.setAttribute("download", "sporcu_pratik_drive_yedek.json");
+                    document.body.appendChild(dlAnchor);
+                    dlAnchor.click();
+                    dlAnchor.remove();
+                    if ($("drive_msg")) $("drive_msg").innerText = "Google Drive için JSON yedek dosyası indirildi.";
+                };
+            }
+
+            if ($("xf_drive")) {
+                $("xf_drive").onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const imported = JSON.parse(event.target.result);
+                            if (Array.isArray(imported)) {
+                                var mr = mergeClients(imported);
+                                try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {}
+                                renderClientList();
+                                if ($("drive_msg")) $("drive_msg").innerText = `${mr.add} yeni, ${mr.upd} mevcut kayıt birleştirildi (toplam ${CL.length}). Mükerrer kayıt açılmadı.`;
+                            }
+                        } catch (err) {
+                            if ($("drive_msg")) $("drive_msg").innerText = "Geçersiz JSON dosyası.";
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+            }
+
+            if ($("btn_sync_drive")) {
+                $("btn_sync_drive").onclick = async () => {
+                    const url = $("drive_webhook_url").value.trim();
+                    if (!url) {
+                        $("sync_status_msg").innerText = "Lütfen geçerli bir Google Apps Script Web App URL yapıştırın.";
+                        return;
+                    }
+                    $("sync_status_msg").innerText = "Senkronize ediliyor...";
+                    try {
+                        const resp = await fetch(url, {
+                            method: "POST",
+                            mode: "no-cors",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(CL)
+                        });
+                        $("sync_status_msg").innerText = "✔ Veriler Google Drive / Sheets hesabınıza başarıyla gönderildi.";
+                    } catch (err) {
+                        $("sync_status_msg").innerText = "Senkronizasyon hatası: " + err.message;
+                    }
+                };
+            }
+
+            $("main").addEventListener("input", () => {
+                calc(); sm(); save();
+            });
+        };
+
+        /* ══════════════ SUPPLEMENT PROTOKOL ══════════════ */
+        let suppItems = []; // [{name, timing, cat}]
+
+        const SUPP_CAT_COLORS = {
+            vitamin:  { bg: '#FEF3C7', border: '#F59E0B', text: '#92400E', rbg: '#FDE68A', rborder: '#D97706' },
+            mineral:  { bg: '#D1FAE5', border: '#10B981', text: '#064E3B', rbg: '#A7F3D0', rborder: '#059669' },
+            diger:    { bg: '#DBEAFE', border: '#3B82F6', text: '#1E3A8A', rbg: '#BFDBFE', rborder: '#2563EB' }
+        };
+
+        function suppRender() {
+            const el = $("supp_cards");
+            if (!el) return;
+            if (suppItems.length === 0) {
+                el.innerHTML = '<p class="text-sm text-slate-400 text-center py-6 italic">Henüz supplement eklenmedi.</p>';
+                if ($("supp_count")) $("supp_count").textContent = '';
+                return;
+            }
+            if ($("supp_count")) $("supp_count").textContent = `(${suppItems.length} madde)`;
+
+            el.innerHTML = suppItems.map((item, i) => {
+                const c = SUPP_CAT_COLORS[item.cat] || SUPP_CAT_COLORS.diger;
+                const catLabel = { vitamin: 'Vitamin', mineral: 'Mineral', diger: 'Diğer' }[item.cat] || 'Diğer';
+                return `
+                <div class="flex items-stretch gap-2 group">
+                    <div class="flex-shrink-0 flex items-center justify-center rounded-xl px-3 py-2.5 font-black text-xs min-w-[130px] text-center"
+                        style="background:${c.bg};border:1.5px solid ${c.border};color:${c.text}">
+                        ${item.name}
+                    </div>
+                    <div class="flex-1 flex items-center rounded-xl px-3 py-2.5 font-semibold text-xs"
+                        style="background:${c.rbg};border:1.5px solid ${c.rborder};color:${c.text}">
+                        ${item.timing}
+                    </div>
+                    <button onclick="suppRemove(${i})" class="opacity-0 group-hover:opacity-100 transition px-2 text-red-400 hover:text-red-600 text-sm" title="Kaldır">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function suppQuickAdd(name, cat, timing) {
+            suppItems.push({ name, cat, timing });
+            suppSave(); suppRender();
+        }
+
+        function suppAddManual() {
+            const name = ($("supp_name").value || '').trim();
+            const timing = ($("supp_timing").value || '').trim();
+            const cat = $("supp_cat").value || 'diger';
+            if (!name) { alert("Supplement adı giriniz."); return; }
+            if (!timing) { alert("Zamanlama/doz giriniz."); return; }
+            suppItems.push({ name, timing, cat });
+            $("supp_name").value = ''; $("supp_timing").value = '';
+            suppSave(); suppRender();
+        }
+
+        function suppRemove(idx) {
+            suppItems.splice(idx, 1);
+            suppSave(); suppRender();
+        }
+
+        function suppClearAll() {
+            if (!suppItems.length || confirm("Tüm protokol temizlensin mi?")) {
+                suppItems = []; suppSave(); suppRender();
+            }
+        }
+
+        function suppSave() {
+            const key = 'supp_' + (($("cnt_name") ? $("cnt_name").value : '') || '_global');
+            try { localStorage.setItem(key, JSON.stringify(suppItems)); } catch(e) {}
+        }
+
+        function suppLoad() {
+            const key = 'supp_' + (($("cnt_name") ? $("cnt_name").value : '') || '_global');
+            try {
+                const d = localStorage.getItem(key);
+                suppItems = d ? JSON.parse(d) : [];
+            } catch(e) { suppItems = []; }
+            suppRender();
+        }
+
+        async function suppGenPDF() {
+            const clientName = ($("cnt_name") ? $("cnt_name").value : '') || 'Danışan';
+            if (suppItems.length === 0) { alert("Protokolde supplement yok."); return; }
+
+            // pdf-lib yüklü olduğunu kontrol et
+            let PDFLib;
+            try { PDFLib = window.PDFLib; } catch(e) {}
+            if (!PDFLib || !PDFLib.PDFDocument) {
+                alert("PDF kütüphanesi yüklenemedi. Sayfayı yenileyin."); return;
+            }
+
+            const { PDFDocument, rgb, StandardFonts } = PDFLib;
+            const doc = await PDFDocument.create();
+            doc.setTitle(`${clientName} – Supplement Protokol`);
+            doc.setAuthor("Uzm. Dyt. Yunus Aksu");
+            doc.setProducer("ASD – Assistant Sport Dietitian");
+
+            // Sayfa boyutu: A4
+            const W = 595.28, H = 841.89;
+            const page = doc.addPage([W, H]);
+            const helveticaBold = await doc.embedFont(StandardFonts.HelveticaBold);
+            const helvetica = await doc.embedFont(StandardFonts.Helvetica);
+
+            // Arka plan rengi: krem
+            page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: rgb(0.969, 0.949, 0.918) });
+
+            // Başlık: danışan adı
+            const nameSize = 30;
+            const nameTxt = clientName;
+            const nameW = helvetica.widthOfTextAtSize(nameTxt, nameSize);
+            page.drawText(nameTxt, {
+                x: W / 2 - nameW / 2, y: H - 80,
+                size: nameSize, font: helvetica, color: rgb(0.15, 0.15, 0.15)
+            });
+
+            // Alt başlık: "Supplement Protokol"
+            const subtitleSize = 22;
+            const subtitleTxt = "Supplement Protokol";
+            const subtitleW = helveticaBold.widthOfTextAtSize(subtitleTxt, subtitleSize);
+            page.drawText(subtitleTxt, {
+                x: W / 2 - subtitleW / 2, y: H - 130,
+                size: subtitleSize, font: helveticaBold, color: rgb(0.1, 0.1, 0.1)
+            });
+
+            // Ayırıcı çizgi
+            page.drawLine({
+                start: { x: 80, y: H - 155 }, end: { x: W - 80, y: H - 155 },
+                thickness: 1.5, color: rgb(0.7, 0.65, 0.6)
+            });
+
+            // Supplement kartları
+            const catColors = {
+                vitamin:  { lR: 0.251, lG: 0.706, lB: 0.400, rR: 0.200, rG: 0.600, rB: 0.320 },
+                mineral:  { lR: 0.251, lG: 0.702, lB: 0.451, rR: 0.082, rG: 0.600, rB: 0.341 },
+                diger:    { lR: 0.984, lG: 0.631, lB: 0.220, rR: 0.855, rG: 0.490, rB: 0.122 }
+            };
+
+            const allColors = [
+                { lR:0.251,lG:0.706,lB:0.400, rR:0.200,rG:0.600,rB:0.320 }, // green (mineral)
+                { lR:0.984,lG:0.631,lB:0.220, rR:0.855,rG:0.490,rB:0.122 }, // amber (vitamin)
+                { lR:0.576,lG:0.867,lB:0.400, rR:0.451,rG:0.745,rB:0.298 }, // light green
+                { lR:1.000,lG:0.800,lB:0.300, rR:0.900,rG:0.650,rB:0.100 }, // yellow
+                { lR:0.900,lG:0.400,lB:0.200, rR:0.780,rG:0.300,rB:0.100 }, // orange
+            ];
+
+            let yPos = H - 185;
+            const rowH = 42, rowGap = 10;
+            const leftW = 165, rightW = 310;
+            const startX = 60;
+            const rad = 8;
+
+            function roundedRect(pg, x, y, w, h, r, fillColor) {
+                pg.drawRectangle({ x: x + r, y, width: w - 2*r, height: h, color: fillColor });
+                pg.drawRectangle({ x, y: y + r, width: w, height: h - 2*r, color: fillColor });
+                const corners = [[x+r,y+r],[x+w-r,y+r],[x+r,y+h-r],[x+w-r,y+h-r]];
+                corners.forEach(([cx,cy]) => pg.drawCircle({ x:cx, y:cy, size:r, color:fillColor }));
+            }
+
+            for (let i = 0; i < suppItems.length; i++) {
+                if (yPos < 120) break; // Sayfa dolu (gelecekte 2. sayfa)
+                const item = suppItems[i];
+                const c = catColors[item.cat] || catColors.diger;
+                const colorIdx = i % allColors.length;
+                const lc = allColors[colorIdx];
+                const rcR = Math.max(0, lc.lR - 0.13);
+                const rcG = Math.max(0, lc.lG - 0.13);
+                const rcB = Math.max(0, lc.lB - 0.05);
+
+                // Sol pill: isim
+                roundedRect(page, startX, yPos, leftW, rowH, rad, rgb(lc.lR, lc.lG, lc.lB));
+                const nameFs = 11;
+                const nW = helveticaBold.widthOfTextAtSize(item.name, nameFs);
+                const nX = Math.max(startX + 6, startX + leftW/2 - nW/2);
+                page.drawText(item.name, {
+                    x: Math.min(nX, startX + leftW - nW - 6),
+                    y: yPos + rowH/2 - nameFs*0.35,
+                    size: nameFs, font: helveticaBold, color: rgb(1, 1, 1)
+                });
+
+                // Sağ pill: zamanlama
+                const rX = startX + leftW + 10;
+                roundedRect(page, rX, yPos, rightW, rowH, rad, rgb(rcR, rcG, rcB));
+                const timingFs = 10;
+                const tTxt = item.timing.length > 48 ? item.timing.substring(0, 46) + '…' : item.timing;
+                page.drawText(tTxt, {
+                    x: rX + 14,
+                    y: yPos + rowH/2 - timingFs*0.35,
+                    size: timingFs, font: helveticaBold, color: rgb(1, 1, 1)
+                });
+
+                yPos -= (rowH + rowGap);
+            }
+
+            // Footer: Yunus Aksu imzası
+            const footerY = 55;
+            page.drawLine({
+                start: { x: W/2 - 60, y: footerY + 20 }, end: { x: W/2 + 60, y: footerY + 20 },
+                thickness: 0.8, color: rgb(0.6, 0.55, 0.5)
+            });
+            const signTxt = "Uzm. Dyt. Yunus Aksu";
+            const signW = helveticaBold.widthOfTextAtSize(signTxt, 9);
+            page.drawText(signTxt, {
+                x: W/2 - signW/2, y: footerY + 6,
+                size: 9, font: helveticaBold, color: rgb(0.35, 0.32, 0.28)
+            });
+            const dateTxt = new Date().toLocaleDateString("tr-TR", { day:"2-digit", month:"long", year:"numeric" });
+            const dateW = helvetica.widthOfTextAtSize(dateTxt, 8);
+            page.drawText(dateTxt, {
+                x: W/2 - dateW/2, y: footerY - 6,
+                size: 8, font: helvetica, color: rgb(0.55, 0.52, 0.48)
+            });
+
+            // İndir
+            const pdfBytes = await doc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const fname = clientName.replace(/\s+/g, '_') + '_Supplement_Protokol_' + new Date().toISOString().slice(0,10) + '.pdf';
+            a.href = url; a.download = fname; a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Danışan yüklendiğinde supplement verisini de yükle
+        const _origLoadClient = typeof loadClient === 'function' ? loadClient : null;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Danışan seçimi değişince suppLoad çağır
+            const clientSel = $("client_selector");
+            if (clientSel) {
+                clientSel.addEventListener("change", () => setTimeout(suppLoad, 100));
+            }
+            suppLoad();
+        });
+    </script>
+</body>
+</html>
