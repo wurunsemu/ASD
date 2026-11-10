@@ -741,6 +741,11 @@
 
     <!-- ▸ TAB 4: HİDRASYON -->
     <section id="tab-hy" class="tab-content hidden space-y-5">
+        <div class="flex justify-end">
+            <button onclick="hyGenPDF()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" style="box-shadow:0 2px 8px rgba(8,145,178,0.3)">
+                <i class="fa-solid fa-file-pdf"></i> PDF İndir
+            </button>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div class="card p-6 space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -780,6 +785,11 @@
 
     <!-- ▸ TAB 5: PROTEİN & MPS -->
     <section id="tab-pr" class="tab-content hidden space-y-5">
+        <div class="flex justify-end">
+            <button onclick="proGenPDF()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" style="box-shadow:0 2px 8px rgba(79,70,229,0.3)">
+                <i class="fa-solid fa-file-pdf"></i> PDF İndir
+            </button>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div class="card p-6 space-y-4">
                 <h2 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
@@ -1440,12 +1450,17 @@ window.addEventListener('load', function () {
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active-tab'));
-            
+
             const target = $("tab-" + tabId);
             const btn = $("nav-" + tabId);
             if (target) target.classList.remove('hidden');
             if (btn) btn.classList.add('active-tab');
             window.scrollTo(0, 0);
+
+            // Ergojenikler sekmesine geçince tabloyu render et
+            if (tabId === 'sp' && typeof renderAIS === 'function') {
+                try { renderAIS(); } catch(e) {}
+            }
         }
 
         const borgMap = {
@@ -1995,7 +2010,7 @@ GECE / UYKU ÖNCESİ (22:30):
             tbody.innerHTML = ALL.map((r, idx) => `
                 <tr class="border-b border-slate-100 hover:bg-amber-50/30 transition-colors" id="ergo-row-${idx}">
                     <td class="p-3 align-middle text-center">
-                        <input type="checkbox" class="ergo-cb w-4 h-4 rounded accent-amber-500 cursor-pointer" data-idx="${idx}" onchange="ergoUpdateCount()">
+                        <input type="checkbox" class="ergo-cb w-4 h-4 rounded accent-amber-500 cursor-pointer" data-idx="${idx}">
                     </td>
                     <td class="p-3 align-top">
                         <p class="font-black text-slate-800 text-xs">${r.name}</p>
@@ -2166,6 +2181,170 @@ GECE / UYKU ÖNCESİ (22:30):
             URL.revokeObjectURL(url);
           } catch(err) {
             console.error("ergoGenPDF hatasi:", err);
+            alert("PDF olusturulurken hata olustu: " + (err && err.message ? err.message : String(err)));
+          }
+        }
+
+        // ─── Hidrasyon PDF ───────────────────────────────────────────────────────
+        async function hyGenPDF() {
+          try {
+            if (!window.PDFLib) { alert("pdf-lib yüklenmedi."); return; }
+            const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+            const clientName = ($("cn") && $("cn").value.trim()) || "Danisan";
+            const dateStr = new Date().toISOString().slice(0, 10);
+
+            const txt = (el) => {
+                const e = document.getElementById(el);
+                return e ? trToAscii(e.textContent || e.innerText || "–") : "–";
+            };
+
+            const pdfDoc = await PDFDocument.create();
+            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+            const page = pdfDoc.addPage([595, 842]);
+            const { width, height } = page.getSize();
+            let y = height - 20;
+
+            // Header stripe
+            page.drawRectangle({ x: 0, y: height - 56, width, height: 56, color: rgb(0.03, 0.57, 0.69) });
+            page.drawText(trToAscii(clientName), { x: 20, y: height - 22, size: 15, font: bold, color: rgb(1,1,1) });
+            page.drawText("Hidrasyon Raporu", { x: 20, y: height - 40, size: 10, font, color: rgb(0.85,0.97,1) });
+            page.drawText(dateStr, { x: width - 90, y: height - 32, size: 9, font, color: rgb(0.85,0.97,1) });
+            y = height - 72;
+
+            const drawSection = (title, rows) => {
+                page.drawText(title, { x: 20, y, size: 11, font: bold, color: rgb(0.03, 0.57, 0.69) });
+                y -= 4;
+                page.drawLine({ start:{x:20,y}, end:{x:width-20,y}, thickness:0.5, color:rgb(0.03,0.57,0.69) });
+                y -= 14;
+                rows.forEach(([label, val]) => {
+                    page.drawText(trToAscii(label), { x: 24, y, size: 9, font, color: rgb(0.3,0.3,0.3) });
+                    page.drawText(trToAscii(val), { x: 300, y, size: 9, font: bold, color: rgb(0.1,0.1,0.1) });
+                    y -= 14;
+                });
+                y -= 8;
+            };
+
+            drawSection("Ter Orani & Sivi Kaybi Sonuclari", [
+                ["Ter Hizi (Sweat Rate):", txt("hr")],
+                ["Toplam Ter Kaybi:", txt("hl")],
+                ["Net Agirlik Kaybi:", txt("hd")],
+                ["Agirlik Kaybi (%):", txt("hp")],
+                ["Replasman Hedefi (%125-150):", txt("hx")],
+            ]);
+
+            drawSection("Seans Ici Hidrasyon Rehberi", [
+                ["Seans Oncesi (>=4 sa once):", txt("p1h")],
+                ["Idrar Koyu ise (2 sa once):", txt("p2h")],
+                ["Seans Ici Sodyum:", txt("p3h")],
+                ["Seans Ici CHO (>60 dk):", txt("p4h")],
+            ]);
+
+            // hw notu varsa
+            const hwEl = document.getElementById("hw");
+            if (hwEl && hwEl.textContent.trim()) {
+                const hwLines = trToAscii(hwEl.textContent.trim()).split(/\n/);
+                page.drawText("Notlar:", { x: 20, y, size: 11, font: bold, color: rgb(0.03,0.57,0.69) });
+                y -= 16;
+                hwLines.slice(0, 6).forEach(line => {
+                    page.drawText(line.trim(), { x: 24, y, size: 8, font, color: rgb(0.3,0.3,0.3) });
+                    y -= 12;
+                });
+            }
+
+            const bytes = await pdfDoc.save();
+            const blob = new Blob([bytes], { type: "application/pdf" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = trToAscii(clientName).replace(/\s+/g,"_") + "_" + dateStr + "_Hidrasyon.pdf";
+            a.click();
+          } catch(err) {
+            console.error("hyGenPDF hatasi:", err);
+            alert("PDF olusturulurken hata olustu: " + (err && err.message ? err.message : String(err)));
+          }
+        }
+
+        // ─── Protein PDF ─────────────────────────────────────────────────────────
+        async function proGenPDF() {
+          try {
+            if (!window.PDFLib) { alert("pdf-lib yüklenmedi."); return; }
+            const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+            const clientName = ($("cn") && $("cn").value.trim()) || "Danisan";
+            const dateStr = new Date().toISOString().slice(0, 10);
+
+            const txt = (el) => {
+                const e = document.getElementById(el);
+                return e ? trToAscii(e.textContent || e.innerText || "–") : "–";
+            };
+            const val = (el) => {
+                const e = document.getElementById(el);
+                return e ? trToAscii(e.value || "–") : "–";
+            };
+
+            const pdfDoc = await PDFDocument.create();
+            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+            const page = pdfDoc.addPage([595, 842]);
+            const { width, height } = page.getSize();
+            let y = height - 20;
+
+            // Header stripe
+            page.drawRectangle({ x: 0, y: height - 56, width, height: 56, color: rgb(0.31, 0.27, 0.9) });
+            page.drawText(trToAscii(clientName), { x: 20, y: height - 22, size: 15, font: bold, color: rgb(1,1,1) });
+            page.drawText("Protein & MPS Raporu", { x: 20, y: height - 40, size: 10, font, color: rgb(0.9,0.88,1) });
+            page.drawText(dateStr, { x: width - 90, y: height - 32, size: 9, font, color: rgb(0.9,0.88,1) });
+            y = height - 72;
+
+            const drawSection = (title, rows, titleColor) => {
+                const c = titleColor || rgb(0.31, 0.27, 0.9);
+                page.drawText(title, { x: 20, y, size: 11, font: bold, color: c });
+                y -= 4;
+                page.drawLine({ start:{x:20,y}, end:{x:width-20,y}, thickness:0.5, color: c });
+                y -= 14;
+                rows.forEach(([label, v]) => {
+                    page.drawText(trToAscii(label), { x: 24, y, size: 9, font, color: rgb(0.3,0.3,0.3) });
+                    page.drawText(trToAscii(String(v)), { x: 300, y, size: 9, font: bold, color: rgb(0.1,0.1,0.1) });
+                    y -= 14;
+                });
+                y -= 8;
+            };
+
+            // Ürün tipi seçili option text
+            const ptSel = document.getElementById("pt");
+            const ptName = ptSel ? trToAscii(ptSel.options[ptSel.selectedIndex]?.text || "–") : "–";
+
+            drawSection("Protein Butcesi & Sirkadiyen Harita", [
+                ["Gunluk Protein Hedefi:", txt("q1")],
+                ["Degisim Planından Gelen:", txt("q2")],
+                ["  └ Protein Powder:", txt("q2_pw")],
+                ["Net Acik (Ilave Takviye):", txt("q3")],
+                ["Anabolik Esik (0.25-0.4 g/kg):", txt("q4")],
+                ["Antrenman Sonrasi (0.25-0.3 g/kg):", txt("q5")],
+                ["Uyku Oncesi Kazein (~0.4 g/kg):", txt("q6")],
+            ]);
+
+            drawSection("Takviye Dozajlama & Losin Analizi", [
+                ["Urun Tipi:", ptName],
+                ["Protein Orani (%):", val("pp")],
+                ["Losin (g/100g):", val("pl")],
+                ["Olcek (g):", val("sc")],
+                ["Istenen Doz (g P):", val("pd")],
+                ["Olcek Basi Protein:", txt("s1")],
+                ["Doz Icin Gereken Urun:", txt("s2")],
+                ["Alinan Losin:", txt("s3")],
+                ["2.5g Losin Icin Gereken:", txt("s4")],
+            ]);
+
+            const bytes = await pdfDoc.save();
+            const blob = new Blob([bytes], { type: "application/pdf" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = trToAscii(clientName).replace(/\s+/g,"_") + "_" + dateStr + "_Protein.pdf";
+            a.click();
+          } catch(err) {
+            console.error("proGenPDF hatasi:", err);
             alert("PDF olusturulurken hata olustu: " + (err && err.message ? err.message : String(err)));
           }
         }
@@ -3311,7 +3490,7 @@ GECE / UYKU ÖNCESİ (22:30):
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            const fname = trToAscii(clientName).replace(/\s+/g, '_') + '_Supplement_Protokol_' + new Date().toISOString().slice(0,10) + '.pdf';
+            const fname = trToAscii(clientName).replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '_SuppProtokol.pdf';
             a.href = url; a.download = fname; a.click();
             URL.revokeObjectURL(url);
           } catch(err) {
@@ -3329,6 +3508,16 @@ GECE / UYKU ÖNCESİ (22:30):
                 clientSel.addEventListener("change", () => setTimeout(suppLoad, 100));
             }
             suppLoad();
+
+            // Ergojenikler: event delegation (renderAIS her çağrıldığında checkbox'lar yeniden oluşur)
+            const ergoTbody = $("spt");
+            if (ergoTbody) {
+                ergoTbody.addEventListener("change", (e) => {
+                    if (e.target && e.target.classList.contains("ergo-cb")) {
+                        ergoUpdateCount();
+                    }
+                });
+            }
         });
     </script>
 </body>
