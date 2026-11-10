@@ -176,23 +176,23 @@
         <button onclick="switchTab('pr')" id="nav-pr" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
             <i class="fa-solid fa-dna text-sm"></i> <span class="hidden sm:inline">5.</span> Protein & MPS
         </button>
-        <button onclick="switchTab('sp')" id="nav-sp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-            <i class="fa-solid fa-award text-sm"></i> <span class="hidden sm:inline">6.</span> Ergojenikler
+        <button onclick="switchTab('supp')" id="nav-supp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">6.</span> Supp. Protokol
         </button>
-        <button onclick="switchTab('drive')" id="nav-drive" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-            <i class="fa-brands fa-google-drive text-sm"></i> <span class="hidden sm:inline">7.</span> Drive
+        <button onclick="switchTab('sp')" id="nav-sp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-award text-sm"></i> <span class="hidden sm:inline">7.</span> Ergojenikler
         </button>
         <button onclick="switchTab('rp')" id="nav-rp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
             <i class="fa-solid fa-file-pdf text-sm"></i> <span class="hidden sm:inline">8.</span> Rapor & PDF
         </button>
-        <button onclick="switchTab('fh')" id="nav-fh" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-            <i class="fa-solid fa-book-medical text-sm"></i> <span class="hidden sm:inline">9.</span> Rehber
-        </button>
         <button onclick="switchTab('vs')" id="nav-vs" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-            <i class="fa-solid fa-clock-rotate-left text-sm"></i> <span class="hidden sm:inline">10.</span> Görüşmeler
+            <i class="fa-solid fa-clock-rotate-left text-sm"></i> <span class="hidden sm:inline">9.</span> Görüşmeler
         </button>
-        <button onclick="switchTab('supp')" id="nav-supp" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
-            <i class="fa-solid fa-pills text-sm text-purple-500"></i> <span class="hidden sm:inline">11.</span> Supp. Protokol
+        <button onclick="switchTab('drive')" id="nav-drive" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-brands fa-google-drive text-sm"></i> <span class="hidden sm:inline">10.</span> Drive
+        </button>
+        <button onclick="switchTab('fh')" id="nav-fh" class="tab-btn px-3.5 py-2 rounded-xl border border-slate-200 transition-all text-xs font-semibold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-book-medical text-sm"></i> <span class="hidden sm:inline">11.</span> Rehber
         </button>
     </div>
 </nav>
@@ -840,10 +840,23 @@
                     Ağırlık: <span id="ais-kg-display">50.6</span> kg bazlı
                 </span>
             </div>
+            <!-- Ergojenikler PDF Toolbar -->
+            <div class="flex flex-wrap items-center gap-3 py-2">
+                <label class="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-slate-600">
+                    <input type="checkbox" id="ergo_select_all" onchange="ergoToggleAll(this.checked)" class="w-4 h-4 rounded accent-amber-500">
+                    Tümünü Seç
+                </label>
+                <span class="text-slate-200">|</span>
+                <button onclick="ergoGenPDF()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" style="box-shadow:0 2px 8px rgba(245,158,11,0.3)">
+                    <i class="fa-solid fa-file-pdf"></i> Seçilenleri PDF İndir
+                </button>
+                <span id="ergo_sel_count" class="text-[11px] text-slate-400 italic"></span>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                            <th class="p-3 w-8"></th>
                             <th class="p-3 min-w-[130px]">Takviye</th>
                             <th class="p-3 text-emerald-700 min-w-[150px]">Kişiye Özel Doz</th>
                             <th class="p-3 min-w-[180px]">Protokol & Zamanlama</th>
@@ -1974,10 +1987,16 @@ GECE / UYKU ÖNCESİ (22:30):
             const colorMap = { high: "text-emerald-700 bg-emerald-50 border-emerald-200", medium: "text-amber-700 bg-amber-50 border-amber-200", low: "text-slate-500 bg-slate-50 border-slate-200" };
             const labelMap = { high: "⭐ Öncelikli", medium: "Opsiyonel", low: "Düşük Öncelik" };
 
+            // Ergojenikler verisini global'e aktar (PDF için)
+            window._ergoData = ALL;
+
             const tbody = $("spt");
             if (!tbody) return;
-            tbody.innerHTML = ALL.map(r => `
-                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+            tbody.innerHTML = ALL.map((r, idx) => `
+                <tr class="border-b border-slate-100 hover:bg-amber-50/30 transition-colors" id="ergo-row-${idx}">
+                    <td class="p-3 align-middle text-center">
+                        <input type="checkbox" class="ergo-cb w-4 h-4 rounded accent-amber-500 cursor-pointer" data-idx="${idx}" onchange="ergoUpdateCount()">
+                    </td>
                     <td class="p-3 align-top">
                         <p class="font-black text-slate-800 text-xs">${r.name}</p>
                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 mt-0.5 inline-block">${r.badge}</span>
@@ -1991,6 +2010,164 @@ GECE / UYKU ÖNCESİ (22:30):
                     <td class="p-3 text-[11px] text-slate-600 align-top leading-relaxed">${r.mechanism}</td>
                 </tr>
             `).join("");
+            ergoUpdateCount();
+        }
+
+        function ergoUpdateCount() {
+            const cbs = document.querySelectorAll('.ergo-cb');
+            const checked = document.querySelectorAll('.ergo-cb:checked').length;
+            const countEl = $('ergo_sel_count');
+            if (countEl) countEl.textContent = checked > 0 ? checked + ' ergojenik seçildi' : '';
+            const allCb = $('ergo_select_all');
+            if (allCb) allCb.checked = cbs.length > 0 && checked === cbs.length;
+        }
+
+        function ergoToggleAll(checked) {
+            document.querySelectorAll('.ergo-cb').forEach(cb => cb.checked = checked);
+            ergoUpdateCount();
+        }
+
+        async function ergoGenPDF() {
+            const data = window._ergoData;
+            if (!data || data.length === 0) { alert("Önce sporcu verilerini hesaplayın."); return; }
+
+            const selected = Array.from(document.querySelectorAll('.ergo-cb:checked'))
+                .map(cb => data[parseInt(cb.dataset.idx)])
+                .filter(Boolean);
+            if (selected.length === 0) { alert("Lütfen en az bir ergojenik seçin."); return; }
+
+            let PDFLib;
+            try { PDFLib = window.PDFLib; } catch(e) {}
+            if (!PDFLib || !PDFLib.PDFDocument) {
+                alert("PDF kutuphanesi yuklenemedi. Sayfayi yenileyin."); return;
+            }
+
+          try {
+            const { PDFDocument, rgb, StandardFonts } = PDFLib;
+            const clientName = trToAscii(($("cnt_name") ? $("cnt_name").value : '') || 'Sporcu');
+            const kgEl = $('ais-kg-display');
+            const kgTxt = kgEl ? kgEl.textContent.trim() : '';
+
+            const doc = await PDFDocument.create();
+            doc.setTitle(clientName + ' - Ergojenikler');
+            doc.setAuthor("Uzm. Dyt. Yunus Aksu");
+            doc.setProducer("ASD - Assistant Sport Dietitian");
+
+            const W = 595.28, H = 841.89;
+            const page = doc.addPage([W, H]);
+            const hb = await doc.embedFont(StandardFonts.HelveticaBold);
+            const h  = await doc.embedFont(StandardFonts.Helvetica);
+
+            // Arka plan
+            page.drawRectangle({ x:0, y:0, width:W, height:H, color: rgb(0.96,0.97,0.98) });
+            // Header şeridi
+            page.drawRectangle({ x:0, y:H-90, width:W, height:90, color: rgb(0.95,0.76,0.08) });
+
+            // Başlık
+            const title = 'Ergojenikler – AIS Grup A';
+            const tw = hb.widthOfTextAtSize(title, 20);
+            page.drawText(title, { x: W/2-tw/2, y: H-42, size:20, font:hb, color:rgb(0.1,0.1,0.1) });
+
+            // Alt başlık
+            const sub = clientName + (kgTxt ? '  |  ' + kgTxt + ' kg bazli' : '');
+            const sw = h.widthOfTextAtSize(sub, 11);
+            page.drawText(sub, { x: W/2-sw/2, y: H-62, size:11, font:h, color:rgb(0.2,0.2,0.2) });
+
+            // Tarih sağ üst
+            const dateStr = trToAscii(new Date().toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric"}));
+            page.drawText(dateStr, { x: W-180, y: H-78, size:9, font:h, color:rgb(0.3,0.3,0.3) });
+
+            // Sütun başlıkları
+            const cols = { name:50, dose:200, timing:330, mechanism:470 };
+            const headerY = H-115;
+            page.drawRectangle({ x:40, y:headerY-6, width:W-80, height:22, color:rgb(0.22,0.22,0.22) });
+            page.drawText('Takviye',   { x:cols.name,      y:headerY, size:9, font:hb, color:rgb(1,1,1) });
+            page.drawText('Doz',       { x:cols.dose,      y:headerY, size:9, font:hb, color:rgb(1,1,1) });
+            page.drawText('Zamanlama', { x:cols.timing,    y:headerY, size:9, font:hb, color:rgb(1,1,1) });
+            page.drawText('Mekanizma', { x:cols.mechanism, y:headerY, size:9, font:hb, color:rgb(1,1,1) });
+
+            const rowColors = [rgb(1,1,1), rgb(0.96,0.97,0.98)];
+            const priorityBadge = { high:'[Oncelikli]', medium:'[Opsiyonel]', low:'[Dusuk]' };
+
+            let yPos = headerY - 24;
+            const rowH = 48;
+
+            function wrapText(text, maxW, font, size, maxLines) {
+                const words = String(text||'').split(' ');
+                const lines = [];
+                let line = '';
+                for (const w of words) {
+                    const test = line ? line + ' ' + w : w;
+                    if (font.widthOfTextAtSize(test, size) > maxW && line) {
+                        lines.push(line);
+                        line = w;
+                        if (lines.length >= maxLines) break;
+                    } else { line = test; }
+                }
+                if (line && lines.length < maxLines) lines.push(line);
+                return lines;
+            }
+
+            for (let i = 0; i < selected.length; i++) {
+                if (yPos < 80) {
+                    // Yeni sayfa
+                    const p2 = doc.addPage([W, H]);
+                    p2.drawRectangle({ x:0, y:0, width:W, height:H, color:rgb(0.96,0.97,0.98) });
+                    yPos = H - 60;
+                }
+                const r = selected[i];
+                const bg = rowColors[i % 2];
+                page.drawRectangle({ x:40, y:yPos-rowH+8, width:W-80, height:rowH, color:bg });
+
+                const badge = priorityBadge[r.priority] || '';
+                const nameLines = [trToAscii(r.name), badge];
+                const doseLines = wrapText(trToAscii(r.dose||''), 120, h, 8, 3);
+                const timingLines = wrapText(trToAscii((r.timing||'')+(r.protocol?' | '+r.protocol:'')), 120, h, 8, 4);
+                const mechLines = wrapText(trToAscii(r.mechanism||''), 110, h, 7.5, 5);
+
+                const lineH = 10;
+                const colY = yPos - 2;
+
+                nameLines.forEach((ln, li) => {
+                    if (ln) page.drawText(ln, { x:cols.name, y:colY-li*lineH, size: li===0?9:7, font: li===0?hb:h, color:rgb(0.1,0.1,0.1) });
+                });
+                doseLines.forEach((ln, li) => {
+                    if (ln) page.drawText(ln, { x:cols.dose, y:colY-li*lineH, size:8, font:hb, color:rgb(0.1,0.55,0.25) });
+                });
+                timingLines.forEach((ln, li) => {
+                    if (ln) page.drawText(ln, { x:cols.timing, y:colY-li*lineH, size:8, font:h, color:rgb(0.1,0.1,0.4) });
+                });
+                mechLines.forEach((ln, li) => {
+                    if (ln) page.drawText(ln, { x:cols.mechanism, y:colY-li*lineH, size:7.5, font:h, color:rgb(0.3,0.3,0.3) });
+                });
+
+                // Alt çizgi
+                page.drawLine({ start:{x:40, y:yPos-rowH+8}, end:{x:W-40, y:yPos-rowH+8}, thickness:0.4, color:rgb(0.8,0.8,0.8) });
+                yPos -= rowH;
+            }
+
+            // Footer
+            const footY = 44;
+            page.drawLine({ start:{x:W/2-70,y:footY+18}, end:{x:W/2+70,y:footY+18}, thickness:0.6, color:rgb(0.6,0.6,0.6) });
+            const sigTxt = "Uzm. Dyt. Yunus Aksu";
+            const sigW = hb.widthOfTextAtSize(sigTxt, 9);
+            page.drawText(sigTxt, { x:W/2-sigW/2, y:footY+4, size:9, font:hb, color:rgb(0.3,0.28,0.25) });
+            const selTxt = selected.length + ' ergojenik secildi';
+            const selW = h.widthOfTextAtSize(selTxt, 7.5);
+            page.drawText(selTxt, { x:W/2-selW/2, y:footY-8, size:7.5, font:h, color:rgb(0.5,0.5,0.5) });
+
+            const pdfBytes = await doc.save();
+            const blob = new Blob([pdfBytes], { type:'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = clientName.replace(/\s+/g,'_') + '_Ergojenikler_' + new Date().toISOString().slice(0,10) + '.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+          } catch(err) {
+            console.error("ergoGenPDF hatasi:", err);
+            alert("PDF olusturulurken hata olustu: " + (err && err.message ? err.message : String(err)));
+          }
         }
 
         function generateReport() {
@@ -2983,17 +3160,29 @@ GECE / UYKU ÖNCESİ (22:30):
             suppRender();
         }
 
+        // Türkçe karakterleri ASCII'ye çeviren yardımcı (StandardFonts Türkçe desteklemez)
+        function trToAscii(s) {
+            return String(s || '')
+                .replace(/ğ/g,'g').replace(/Ğ/g,'G')
+                .replace(/ş/g,'s').replace(/Ş/g,'S')
+                .replace(/ı/g,'i').replace(/İ/g,'I')
+                .replace(/ö/g,'o').replace(/Ö/g,'O')
+                .replace(/ü/g,'u').replace(/Ü/g,'U')
+                .replace(/ç/g,'c').replace(/Ç/g,'C');
+        }
+
         async function suppGenPDF() {
-            const clientName = ($("cnt_name") ? $("cnt_name").value : '') || 'Danışan';
+            const clientName = ($("cnt_name") ? $("cnt_name").value : '') || 'Danisan';
             if (suppItems.length === 0) { alert("Protokolde supplement yok."); return; }
 
             // pdf-lib yüklü olduğunu kontrol et
             let PDFLib;
             try { PDFLib = window.PDFLib; } catch(e) {}
             if (!PDFLib || !PDFLib.PDFDocument) {
-                alert("PDF kütüphanesi yüklenemedi. Sayfayı yenileyin."); return;
+                alert("PDF kutuphanesi yuklenemedi. Sayfayi yenileyin."); return;
             }
 
+          try {
             const { PDFDocument, rgb, StandardFonts } = PDFLib;
             const doc = await PDFDocument.create();
             doc.setTitle(`${clientName} – Supplement Protokol`);
@@ -3011,7 +3200,7 @@ GECE / UYKU ÖNCESİ (22:30):
 
             // Başlık: danışan adı
             const nameSize = 30;
-            const nameTxt = clientName;
+            const nameTxt = trToAscii(clientName);
             const nameW = helvetica.widthOfTextAtSize(nameTxt, nameSize);
             page.drawText(nameTxt, {
                 x: W / 2 - nameW / 2, y: H - 80,
@@ -3074,9 +3263,10 @@ GECE / UYKU ÖNCESİ (22:30):
                 // Sol pill: isim
                 roundedRect(page, startX, yPos, leftW, rowH, rad, rgb(lc.lR, lc.lG, lc.lB));
                 const nameFs = 11;
-                const nW = helveticaBold.widthOfTextAtSize(item.name, nameFs);
+                const iName = trToAscii(item.name);
+                const nW = helveticaBold.widthOfTextAtSize(iName, nameFs);
                 const nX = Math.max(startX + 6, startX + leftW/2 - nW/2);
-                page.drawText(item.name, {
+                page.drawText(iName, {
                     x: Math.min(nX, startX + leftW - nW - 6),
                     y: yPos + rowH/2 - nameFs*0.35,
                     size: nameFs, font: helveticaBold, color: rgb(1, 1, 1)
@@ -3086,7 +3276,8 @@ GECE / UYKU ÖNCESİ (22:30):
                 const rX = startX + leftW + 10;
                 roundedRect(page, rX, yPos, rightW, rowH, rad, rgb(rcR, rcG, rcB));
                 const timingFs = 10;
-                const tTxt = item.timing.length > 48 ? item.timing.substring(0, 46) + '…' : item.timing;
+                const rawTiming = trToAscii(item.timing);
+                const tTxt = rawTiming.length > 48 ? rawTiming.substring(0, 46) + '...' : rawTiming;
                 page.drawText(tTxt, {
                     x: rX + 14,
                     y: yPos + rowH/2 - timingFs*0.35,
@@ -3108,7 +3299,7 @@ GECE / UYKU ÖNCESİ (22:30):
                 x: W/2 - signW/2, y: footerY + 6,
                 size: 9, font: helveticaBold, color: rgb(0.35, 0.32, 0.28)
             });
-            const dateTxt = new Date().toLocaleDateString("tr-TR", { day:"2-digit", month:"long", year:"numeric" });
+            const dateTxt = trToAscii(new Date().toLocaleDateString("tr-TR", { day:"2-digit", month:"long", year:"numeric" }));
             const dateW = helvetica.widthOfTextAtSize(dateTxt, 8);
             page.drawText(dateTxt, {
                 x: W/2 - dateW/2, y: footerY - 6,
@@ -3120,9 +3311,13 @@ GECE / UYKU ÖNCESİ (22:30):
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            const fname = clientName.replace(/\s+/g, '_') + '_Supplement_Protokol_' + new Date().toISOString().slice(0,10) + '.pdf';
+            const fname = trToAscii(clientName).replace(/\s+/g, '_') + '_Supplement_Protokol_' + new Date().toISOString().slice(0,10) + '.pdf';
             a.href = url; a.download = fname; a.click();
             URL.revokeObjectURL(url);
+          } catch(err) {
+            console.error("suppGenPDF hatasi:", err);
+            alert("PDF olusturulurken hata olustu: " + (err && err.message ? err.message : String(err)));
+          }
         }
 
         // Danışan yüklendiğinde supplement verisini de yükle
