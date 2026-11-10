@@ -2036,11 +2036,13 @@ GECE / UYKU ÖNCESİ (22:30):
             const allCb = $('ergo_select_all');
             if (allCb) allCb.checked = cbs.length > 0 && checked === cbs.length;
         }
+        window.ergoUpdateCount = ergoUpdateCount;
 
         function ergoToggleAll(checked) {
             document.querySelectorAll('.ergo-cb').forEach(cb => cb.checked = checked);
             ergoUpdateCount();
         }
+        window.ergoToggleAll = ergoToggleAll;
 
         async function ergoGenPDF() {
             const data = window._ergoData;
@@ -2059,7 +2061,7 @@ GECE / UYKU ÖNCESİ (22:30):
 
           try {
             const { PDFDocument, rgb, StandardFonts } = PDFLib;
-            const clientName = trToAscii(($("cnt_name") ? $("cnt_name").value : '') || 'Sporcu');
+            const clientName = trToAscii(($("cn") ? $("cn").value.trim() : '') || 'Sporcu');
             const kgEl = $('ais-kg-display');
             const kgTxt = kgEl ? kgEl.textContent.trim() : '';
 
@@ -2184,6 +2186,7 @@ GECE / UYKU ÖNCESİ (22:30):
             alert("PDF olusturulurken hata olustu: " + (err && err.message ? err.message : String(err)));
           }
         }
+        window.ergoGenPDF = ergoGenPDF;
 
         // ─── Hidrasyon PDF ───────────────────────────────────────────────────────
         async function hyGenPDF() {
@@ -3322,12 +3325,12 @@ GECE / UYKU ÖNCESİ (22:30):
         }
 
         function suppSave() {
-            const key = 'supp_' + (($("cnt_name") ? $("cnt_name").value : '') || '_global');
+            const key = 'supp_' + (($("cn") ? $("cn").value.trim() : '') || '_global');
             try { localStorage.setItem(key, JSON.stringify(suppItems)); } catch(e) {}
         }
 
         function suppLoad() {
-            const key = 'supp_' + (($("cnt_name") ? $("cnt_name").value : '') || '_global');
+            const key = 'supp_' + (($("cn") ? $("cn").value.trim() : '') || '_global');
             try {
                 const d = localStorage.getItem(key);
                 suppItems = d ? JSON.parse(d) : [];
@@ -3350,7 +3353,7 @@ GECE / UYKU ÖNCESİ (22:30):
         }
 
         async function suppGenPDF() {
-            const clientName = ($("cnt_name") ? $("cnt_name").value : '') || 'Danisan';
+            const clientName = ($("cn") ? $("cn").value.trim() : '') || 'Danisan';
             if (suppItems.length === 0) { alert("Protokolde supplement yok."); return; }
 
             // pdf-lib yüklü olduğunu kontrol et
@@ -3555,7 +3558,13 @@ GECE / UYKU ÖNCESİ (22:30):
                 const cloudData = await res.json();
                 if (!Array.isArray(cloudData)) throw new Error("Geçersiz yanıt");
                 if (cloudData.length === 0) {
-                    if (statusEl) statusEl.textContent = "☁ Bulut boş — yerel veriler korundu.";
+                    if (CL && CL.length > 0) {
+                        // Bulut boş ama yerel veri var → buluta yükle
+                        if (statusEl) statusEl.textContent = "⟳ Bulut boş — yerel veriler yükleniyor...";
+                        await cloudSync();
+                    } else {
+                        if (statusEl) statusEl.textContent = "☁ Bulut ve yerel veri boş.";
+                    }
                     return;
                 }
                 const mr = mergeClients(cloudData);
@@ -3602,8 +3611,14 @@ GECE / UYKU ÖNCESİ (22:30):
                         try { localStorage.setItem("sp_cloud_auto", autoEl.checked ? "1" : "0"); } catch(e) {}
                     });
                 }
-                // URL varsa uygulama açılışında cloud'dan yükle
-                if (getCloudUrl()) setTimeout(cloudLoad, 600);
+                // URL varsa uygulama açılışında cloud'dan yükle (cloudLoad içinde boşsa otomatik push yapar)
+                if (getCloudUrl()) {
+                    setTimeout(async () => {
+                        await cloudLoad();
+                        // Yerel veri varsa buluta da push et (çift yön senkronizasyon)
+                        if (CL && CL.length > 0) setTimeout(cloudSync, 500);
+                    }, 800);
+                }
             })();
 
             // Ergojenikler: event delegation (renderAIS her çağrıldığında checkbox'lar yeniden oluşur)
