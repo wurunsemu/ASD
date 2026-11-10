@@ -915,7 +915,7 @@
                     </h3>
                     <div class="space-y-2">
                         <label class="block text-xs font-semibold text-amber-900">Apps Script Web App URL:</label>
-                        <input type="text" id="drive_webhook_url" placeholder="https://script.google.com/macros/s/..." class="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs">
+                        <input type="text" id="drive_webhook_url" value="https://script.google.com/macros/s/AKfycbxVA65eiCgl5uXBUMfEbzMNov_75oyz1HTlmXES5A7HF1R_fjQ3uEl2Cysfc5ZxklTo/exec" class="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs">
                     </div>
                     <label class="flex items-center gap-2 text-xs font-semibold text-amber-900 cursor-pointer">
                         <input type="checkbox" id="drive_auto_chk" checked class="rounded"> Değişiklikleri otomatik senkronize et
@@ -2010,7 +2010,7 @@ GECE / UYKU ÖNCESİ (22:30):
             tbody.innerHTML = ALL.map((r, idx) => `
                 <tr class="border-b border-slate-100 hover:bg-amber-50/30 transition-colors" id="ergo-row-${idx}">
                     <td class="p-3 align-middle text-center">
-                        <input type="checkbox" class="ergo-cb w-4 h-4 rounded accent-amber-500 cursor-pointer" data-idx="${idx}">
+                        <input type="checkbox" class="ergo-cb w-4 h-4 rounded accent-amber-500 cursor-pointer" data-idx="${idx}" onchange="ergoUpdateCount()">
                     </td>
                     <td class="p-3 align-top">
                         <p class="font-black text-slate-800 text-xs">${r.name}</p>
@@ -2318,7 +2318,7 @@ GECE / UYKU ÖNCESİ (22:30):
             drawSection("Protein Butcesi & Sirkadiyen Harita", [
                 ["Gunluk Protein Hedefi:", txt("q1")],
                 ["Degisim Planından Gelen:", txt("q2")],
-                ["  └ Protein Powder:", txt("q2_pw")],
+                ["  > Protein Powder:", txt("q2_pw")],
                 ["Net Acik (Ilave Takviye):", txt("q3")],
                 ["Anabolik Esik (0.25-0.4 g/kg):", txt("q4")],
                 ["Antrenman Sonrasi (0.25-0.3 g/kg):", txt("q5")],
@@ -2566,6 +2566,7 @@ GECE / UYKU ÖNCESİ (22:30):
             if (confirm("Bu danışan kaydını silmek istediğinize emin misiniz?")) {
                 CL = CL.filter(x => x.id !== id);
                 try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {}
+                cloudAutoSync();
                 renderClientList();
             initFormFetcher();
             }
@@ -3162,8 +3163,8 @@ GECE / UYKU ÖNCESİ (22:30):
                     if (lastH && lastH.t === tr && lastH.kg === N("kg")) c.h.pop();
                     c.h.push({ t: tr, kg: N("kg"), tee: $("tee") ? $("tee").innerText : '' });
 
-                    try { 
-                        localStorage.setItem("sp_c_v26", JSON.stringify(CL)); 
+                    try {
+                        localStorage.setItem("sp_c_v26", JSON.stringify(CL));
                         renderClientList();
                         if ($("cmsg")) $("cmsg").innerText = "✔ Kaydedildi: " + ad + " (" + c.kod + "). 2. Adıma yönlendiriliyorsunuz...";
                         setTimeout(() => switchTab('en'), 350);
@@ -3171,6 +3172,7 @@ GECE / UYKU ÖNCESİ (22:30):
                         console.error("Storage Error:", e);
                         if ($("cmsg")) $("cmsg").innerText = "⚠️ Yerel hafıza sınırı! Lütfen eklediğiniz dosya boyutunu küçültün.";
                     }
+                    cloudAutoSync();
                 };
             }
 
@@ -3189,6 +3191,7 @@ GECE / UYKU ÖNCESİ (22:30):
                 const old = CL.slice(); CL = [];
                 old.forEach(x => mergeClients([x]));
                 try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {}
+                cloudAutoSync();
                 renderClientList();
                 if ($("cmsg")) $("cmsg").innerText = "✔ " + (old.length - CL.length) + " mükerrer kayıt birleştirildi. Toplam: " + CL.length;
             };
@@ -3221,6 +3224,7 @@ GECE / UYKU ÖNCESİ (22:30):
                             if (Array.isArray(imported)) {
                                 var mr = mergeClients(imported);
                                 try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch (e) {}
+                                cloudAutoSync();
                                 renderClientList();
                                 if ($("drive_msg")) $("drive_msg").innerText = `${mr.add} yeni, ${mr.upd} mevcut kayıt birleştirildi (toplam ${CL.length}). Mükerrer kayıt açılmadı.`;
                             }
@@ -3234,23 +3238,15 @@ GECE / UYKU ÖNCESİ (22:30):
 
             if ($("btn_sync_drive")) {
                 $("btn_sync_drive").onclick = async () => {
-                    const url = $("drive_webhook_url").value.trim();
-                    if (!url) {
-                        $("sync_status_msg").innerText = "Lütfen geçerli bir Google Apps Script Web App URL yapıştırın.";
+                    if (!getCloudUrl()) {
+                        $("sync_status_msg").innerText = "⚠ Lütfen geçerli bir Google Apps Script Web App URL yapıştırın.";
                         return;
                     }
-                    $("sync_status_msg").innerText = "Senkronize ediliyor...";
-                    try {
-                        const resp = await fetch(url, {
-                            method: "POST",
-                            mode: "no-cors",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(CL)
-                        });
-                        $("sync_status_msg").innerText = "✔ Veriler Google Drive / Sheets hesabınıza başarıyla gönderildi.";
-                    } catch (err) {
-                        $("sync_status_msg").innerText = "Senkronizasyon hatası: " + err.message;
-                    }
+                    // URL'yi hemen kaydet
+                    try { localStorage.setItem("sp_cloud_url", $("drive_webhook_url").value.trim()); } catch(e) {}
+                    // Önce cloud'dan yükle (başka cihazda eklenenler gelsin), sonra kaydet
+                    await cloudLoad();
+                    await cloudSync();
                 };
             }
 
@@ -3347,7 +3343,10 @@ GECE / UYKU ÖNCESİ (22:30):
                 .replace(/ı/g,'i').replace(/İ/g,'I')
                 .replace(/ö/g,'o').replace(/Ö/g,'O')
                 .replace(/ü/g,'u').replace(/Ü/g,'U')
-                .replace(/ç/g,'c').replace(/Ç/g,'C');
+                .replace(/ç/g,'c').replace(/Ç/g,'C')
+                // box-drawing ve özel karakterler
+                .replace(/[└┘┐┌│─┤├┬┴┼╔╗╚╝║═]/g, '-')
+                .replace(/[^\x00-\x7F]/g, '?');  // kalan tüm non-ASCII → ?
         }
 
         async function suppGenPDF() {
@@ -3499,6 +3498,80 @@ GECE / UYKU ÖNCESİ (22:30):
           }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // CLOUD SYNC — Google Apps Script ile cihazlar arası veri senkronizasyonu
+        // ═══════════════════════════════════════════════════════════════════════
+        let _caSyncTimer = null;
+        let _cloudLoading = false;
+        const DEFAULT_CLOUD_URL = "https://script.google.com/macros/s/AKfycbxVA65eiCgl5uXBUMfEbzMNov_75oyz1HTlmXES5A7HF1R_fjQ3uEl2Cysfc5ZxklTo/exec";
+
+        function getCloudUrl() {
+            const urlEl = $("drive_webhook_url");
+            const v = (urlEl ? urlEl.value.trim() : "")
+                   || (localStorage.getItem("sp_cloud_url") || "")
+                   || DEFAULT_CLOUD_URL;
+            return v.startsWith("https://script.google.com") ? v : null;
+        }
+
+        // Otomatik senkronizasyon (1.2sn debounce)
+        function cloudAutoSync() {
+            if (_cloudLoading) return; // cloud yüklenirken döngü olmasın
+            const autoEl = $("drive_auto_chk");
+            if (!autoEl || !autoEl.checked) return;
+            clearTimeout(_caSyncTimer);
+            _caSyncTimer = setTimeout(cloudSync, 1200);
+        }
+
+        // CL'yi cloud'a gönder (no-cors POST)
+        async function cloudSync() {
+            const url = getCloudUrl();
+            if (!url) return;
+            const statusEl = $("sync_status_msg");
+            if (statusEl) statusEl.textContent = "⟳ Buluta kaydediliyor...";
+            try {
+                await fetch(url, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: new URLSearchParams({ action: "saveClients", clients: JSON.stringify(CL) })
+                });
+                const now = new Date().toLocaleTimeString("tr-TR");
+                if (statusEl) statusEl.textContent = "☁ Son senkronizasyon: " + now;
+                try { localStorage.setItem("sp_cloud_last", now); } catch(e) {}
+            } catch(err) {
+                if (statusEl) statusEl.textContent = "⚠ Senkronizasyon hatası";
+            }
+        }
+
+        // Cloud'dan yükle + yerel CL ile birleştir
+        async function cloudLoad() {
+            const url = getCloudUrl();
+            if (!url) return;
+            const statusEl = $("sync_status_msg");
+            if (statusEl) statusEl.textContent = "⟳ Bulut verileri yükleniyor...";
+            _cloudLoading = true;
+            try {
+                const res = await fetch(url + "?action=loadClients", { redirect: "follow" });
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const cloudData = await res.json();
+                if (!Array.isArray(cloudData)) throw new Error("Geçersiz yanıt");
+                if (cloudData.length === 0) {
+                    if (statusEl) statusEl.textContent = "☁ Bulut boş — yerel veriler korundu.";
+                    return;
+                }
+                const mr = mergeClients(cloudData);
+                if (mr.add > 0 || mr.upd > 0) {
+                    try { localStorage.setItem("sp_c_v26", JSON.stringify(CL)); } catch(e) {}
+                    renderClientList();
+                }
+                const now = new Date().toLocaleTimeString("tr-TR");
+                if (statusEl) statusEl.textContent = `☁ Yüklendi (${now}): +${mr.add} yeni, ${mr.upd} güncellendi.`;
+            } catch(err) {
+                if (statusEl) statusEl.textContent = "⚠ Bulut yüklenemedi: " + (err.message || "Bağlantı hatası");
+            } finally {
+                _cloudLoading = false;
+            }
+        }
+
         // Danışan yüklendiğinde supplement verisini de yükle
         const _origLoadClient = typeof loadClient === 'function' ? loadClient : null;
         document.addEventListener('DOMContentLoaded', () => {
@@ -3508,6 +3581,30 @@ GECE / UYKU ÖNCESİ (22:30):
                 clientSel.addEventListener("change", () => setTimeout(suppLoad, 100));
             }
             suppLoad();
+
+            // Cloud URL'yi yükle + kalıcı sakla + startup'ta cloud'dan çek
+            (function() {
+                const urlEl = $("drive_webhook_url");
+                const autoEl = $("drive_auto_chk");
+                const savedUrl = localStorage.getItem("sp_cloud_url") || "";
+                const savedAuto = localStorage.getItem("sp_cloud_auto");
+                if (urlEl && savedUrl) urlEl.value = savedUrl;
+                if (autoEl && savedAuto !== null) autoEl.checked = savedAuto !== "0";
+                const lastSync = localStorage.getItem("sp_cloud_last");
+                if (lastSync && $("sync_status_msg")) $("sync_status_msg").textContent = "☁ Son senkronizasyon: " + lastSync;
+                if (urlEl) {
+                    urlEl.addEventListener("blur", () => {
+                        try { localStorage.setItem("sp_cloud_url", urlEl.value.trim()); } catch(e) {}
+                    });
+                }
+                if (autoEl) {
+                    autoEl.addEventListener("change", () => {
+                        try { localStorage.setItem("sp_cloud_auto", autoEl.checked ? "1" : "0"); } catch(e) {}
+                    });
+                }
+                // URL varsa uygulama açılışında cloud'dan yükle
+                if (getCloudUrl()) setTimeout(cloudLoad, 600);
+            })();
 
             // Ergojenikler: event delegation (renderAIS her çağrıldığında checkbox'lar yeniden oluşur)
             const ergoTbody = $("spt");
