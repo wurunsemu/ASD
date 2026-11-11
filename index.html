@@ -2143,9 +2143,10 @@ GECE / UYKU ÖNCESİ (22:30):
 
                 const badge = priorityBadge[r.priority] || '';
                 const nameLines = [trToAscii(r.name), badge];
-                const doseLines = wrapText(trToAscii(r.dose||''), 120, h, 8, 3);
-                const timingLines = wrapText(trToAscii((r.timing||'')+(r.protocol?' | '+r.protocol:'')), 120, h, 8, 4);
-                const mechLines = wrapText(trToAscii(r.mechanism||''), 110, h, 7.5, 5);
+                const doseLines = wrapText(trToAscii(htmlToText(r.dose||'')), 120, h, 8, 3);
+                const timingRaw = htmlToText(r.timing||'') + (r.protocol ? ' | ' + htmlToText(r.protocol) : '');
+                const timingLines = wrapText(trToAscii(timingRaw), 120, h, 8, 4);
+                const mechLines = wrapText(trToAscii(htmlToText(r.mechanism||'')), 110, h, 7.5, 5);
 
                 const lineH = 10;
                 const colY = yPos - 2;
@@ -3369,7 +3370,25 @@ GECE / UYKU ÖNCESİ (22:30):
                 .replace(/ç/g,'c').replace(/Ç/g,'C')
                 // box-drawing ve özel karakterler
                 .replace(/[└┘┐┌│─┤├┬┴┼╔╗╚╝║═]/g, '-')
+                // tire/kesme/ok gibi yaygın unicode
+                .replace(/[–—]/g, '-')
+                .replace(/[→←↑↓↗↘•·]/g, '-')
+                .replace(/[…]/g, '...')
+                .replace(/['']/g, "'")
+                .replace(/[""«»]/g, '"')
+                .replace(/[×÷]/g, 'x')
                 .replace(/[^\x00-\x7F]/g, '?');  // kalan tüm non-ASCII → ?
+        }
+
+        // PDF oluştururken HTML tag'li alanları düz metne çevir
+        function htmlToText(s) {
+            return String(s || '')
+                .replace(/<br\s*\/?>/gi, ' | ')
+                .replace(/<[^>]+>/g, '')
+                .replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
+                .replace(/&quot;/g, '"')
+                .replace(/\s+/g, ' ').trim();
         }
 
         async function suppGenPDF() {
@@ -3545,23 +3564,29 @@ GECE / UYKU ÖNCESİ (22:30):
             _caSyncTimer = setTimeout(cloudSync, 1200);
         }
 
-        // CL'yi cloud'a gönder (no-cors POST)
+        // CL'yi cloud'a gönder (CORS POST — hatalar görünür)
         async function cloudSync() {
             const url = getCloudUrl();
             if (!url) return;
             const statusEl = $("sync_status_msg");
             if (statusEl) statusEl.textContent = "⟳ Buluta kaydediliyor...";
             try {
-                await fetch(url, {
+                // mode:no-cors kaldırıldı — CORS ile hata görünür olur
+                // redirect:"follow" ile Apps Script yönlendirmelerini takip et
+                const res = await fetch(url, {
                     method: "POST",
-                    mode: "no-cors",
+                    redirect: "follow",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: new URLSearchParams({ action: "saveClients", clients: JSON.stringify(CL) })
                 });
+                if (!res.ok) throw new Error("HTTP " + res.status);
                 const now = new Date().toLocaleTimeString("tr-TR");
                 if (statusEl) statusEl.textContent = "☁ Son senkronizasyon: " + now;
                 try { localStorage.setItem("sp_cloud_last", now); } catch(e) {}
             } catch(err) {
-                if (statusEl) statusEl.textContent = "⚠ Senkronizasyon hatası";
+                // CORS veya ağ hatası — kullanıcıya göster
+                if (statusEl) statusEl.textContent = "⚠ Kayıt hatası: " + (err.message || "Bağlantı hatası");
+                console.error("cloudSync err:", err);
             }
         }
 
@@ -3573,7 +3598,8 @@ GECE / UYKU ÖNCESİ (22:30):
             if (statusEl) statusEl.textContent = "⟳ Bulut verileri yükleniyor...";
             _cloudLoading = true;
             try {
-                const res = await fetch(url + "?action=loadClients", { redirect: "follow" });
+                // &_= cache-buster: Google'ın eski yanıtı serve etmesini önler
+                const res = await fetch(url + "?action=loadClients&_=" + Date.now(), { redirect: "follow" });
                 if (!res.ok) throw new Error("HTTP " + res.status);
                 const cloudData = await res.json();
                 if (!Array.isArray(cloudData)) throw new Error("Geçersiz yanıt");
