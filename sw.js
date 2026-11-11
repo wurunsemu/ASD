@@ -1,4 +1,4 @@
-const V = "sporcu-pratik-v2-21";
+const V = "sporcu-pratik-v2-22";
 const CORE = ["./", "index.html", "diet-pdf.js", "exchange-menu.js", "visits.js", "pdf-lib.min.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
