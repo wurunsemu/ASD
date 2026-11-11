@@ -355,7 +355,9 @@
                     <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-address-book text-emerald-600"></i> Kayıtlı Danışanlar
                     </h2>
-                    <span class="text-xs text-slate-400">Tarayıcı & Drive yedeği</span>
+                    <button onclick="cloudLoad()" class="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition" title="Bulut kaydından danışanları yükle">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Buluttan Çek
+                    </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
@@ -2100,7 +2102,7 @@ GECE / UYKU ÖNCESİ (22:30):
             page.drawText(dateStr, { x: W-180, y: H-78, size:9, font:h, color:rgb(0.3,0.3,0.3) });
 
             // Sütun başlıkları
-            const cols = { name:50, dose:200, timing:330, mechanism:470 };
+            const cols = { name:42, dose:175, timing:293, mechanism:428 };
             const headerY = H-115;
             page.drawRectangle({ x:40, y:headerY-6, width:W-80, height:22, color:rgb(0.22,0.22,0.22) });
             page.drawText('Takviye',   { x:cols.name,      y:headerY, size:9, font:hb, color:rgb(1,1,1) });
@@ -2109,10 +2111,9 @@ GECE / UYKU ÖNCESİ (22:30):
             page.drawText('Mekanizma', { x:cols.mechanism, y:headerY, size:9, font:hb, color:rgb(1,1,1) });
 
             const rowColors = [rgb(1,1,1), rgb(0.96,0.97,0.98)];
-            const priorityBadge = { high:'[Oncelikli]', medium:'[Opsiyonel]', low:'[Dusuk]' };
 
             let yPos = headerY - 24;
-            const rowH = 48;
+            const rowH = 72;
 
             function wrapText(text, maxW, font, size, maxLines) {
                 const words = String(text||'').split(' ');
@@ -2141,18 +2142,17 @@ GECE / UYKU ÖNCESİ (22:30):
                 const bg = rowColors[i % 2];
                 page.drawRectangle({ x:40, y:yPos-rowH+8, width:W-80, height:rowH, color:bg });
 
-                const badge = priorityBadge[r.priority] || '';
-                const nameLines = [trToAscii(r.name), badge];
-                const doseLines = wrapText(trToAscii(htmlToText(r.dose||'')), 120, h, 8, 3);
+                const nameLines = wrapText(trToAscii(r.name), 128, hb, 9, 2);
+                const doseLines = wrapText(trToAscii(htmlToText(r.dose||'')), 110, h, 8, 5);
                 const timingRaw = htmlToText(r.timing||'') + (r.protocol ? ' | ' + htmlToText(r.protocol) : '');
-                const timingLines = wrapText(trToAscii(timingRaw), 120, h, 8, 4);
-                const mechLines = wrapText(trToAscii(htmlToText(r.mechanism||'')), 110, h, 7.5, 5);
+                const timingLines = wrapText(trToAscii(timingRaw), 128, h, 8, 6);
+                const mechLines = wrapText(trToAscii(htmlToText(r.mechanism||'')), 123, h, 7.5, 6);
 
                 const lineH = 10;
                 const colY = yPos - 2;
 
                 nameLines.forEach((ln, li) => {
-                    if (ln) page.drawText(ln, { x:cols.name, y:colY-li*lineH, size: li===0?9:7, font: li===0?hb:h, color:rgb(0.1,0.1,0.1) });
+                    if (ln) page.drawText(ln, { x:cols.name, y:colY-li*lineH, size:9, font:hb, color:rgb(0.1,0.1,0.1) });
                 });
                 doseLines.forEach((ln, li) => {
                     if (ln) page.drawText(ln, { x:cols.dose, y:colY-li*lineH, size:8, font:hb, color:rgb(0.1,0.55,0.25) });
@@ -3377,6 +3377,11 @@ GECE / UYKU ÖNCESİ (22:30):
                 .replace(/['']/g, "'")
                 .replace(/[""«»]/g, '"')
                 .replace(/[×÷]/g, 'x')
+                // alt/üst simge rakamlar: HCO₃⁻ → HCO3- (kimyasal formüller için)
+                .replace(/[₀-₉]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x2080 + 48))
+                .replace(/²/g, '2').replace(/³/g, '3').replace(/¹/g, '1')
+                .replace(/⁰/g, '0').replace(/[⁴-⁹]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x2074 + 52))
+                .replace(/⁺/g, '+').replace(/⁻/g, '-')
                 .replace(/[^\x00-\x7F]/g, '?');  // kalan tüm non-ASCII → ?
         }
 
