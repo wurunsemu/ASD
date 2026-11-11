@@ -920,9 +920,14 @@
                     <label class="flex items-center gap-2 text-xs font-semibold text-amber-900 cursor-pointer">
                         <input type="checkbox" id="drive_auto_chk" checked class="rounded"> Değişiklikleri otomatik senkronize et
                     </label>
-                    <button id="btn_sync_drive" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-sync"></i> Şimdi Senkronize Et
-                    </button>
+                    <div class="flex gap-2">
+                        <button id="btn_sync_drive" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Kaydet
+                        </button>
+                        <button id="btn_cloud_load" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Yenile
+                        </button>
+                    </div>
                     <div id="sync_status_msg" class="text-xs font-semibold text-amber-900"></div>
                 </div>
             </div>
@@ -2009,8 +2014,8 @@ GECE / UYKU ÖNCESİ (22:30):
             if (!tbody) return;
             tbody.innerHTML = ALL.map((r, idx) => `
                 <tr class="border-b border-slate-100 hover:bg-amber-50/30 transition-colors" id="ergo-row-${idx}">
-                    <td class="p-3 align-middle text-center">
-                        <input type="checkbox" class="ergo-cb w-4 h-4 rounded accent-amber-500 cursor-pointer" data-idx="${idx}" onchange="ergoUpdateCount()">
+                    <td class="p-3 align-middle text-center cursor-pointer" onclick="var cb=this.querySelector('.ergo-cb');cb.checked=!cb.checked;ergoUpdateCount()">
+                        <input type="checkbox" class="ergo-cb w-5 h-5 cursor-pointer" data-idx="${idx}" style="accent-color:#f59e0b;pointer-events:none">
                     </td>
                     <td class="p-3 align-top">
                         <p class="font-black text-slate-800 text-xs">${r.name}</p>
@@ -3253,6 +3258,21 @@ GECE / UYKU ÖNCESİ (22:30):
                 };
             }
 
+            // Bulut'tan Yenile butonu — başka tarayıcıda eklenen danışanları çek
+            if ($("btn_cloud_load")) {
+                $("btn_cloud_load").onclick = async () => {
+                    const url = $("drive_webhook_url");
+                    if (url && url.value.trim()) {
+                        try { localStorage.setItem("sp_cloud_url", url.value.trim()); } catch(e) {}
+                    }
+                    if (!getCloudUrl()) {
+                        if ($("sync_status_msg")) $("sync_status_msg").innerText = "⚠ Önce Apps Script URL girin.";
+                        return;
+                    }
+                    await cloudLoad();
+                };
+            }
+
             $("main").addEventListener("input", () => {
                 calc(); sm(); save();
             });
@@ -3618,6 +3638,14 @@ GECE / UYKU ÖNCESİ (22:30):
                         // Yerel veri varsa buluta da push et (çift yön senkronizasyon)
                         if (CL && CL.length > 0) setTimeout(cloudSync, 500);
                     }, 800);
+
+                    // Çoklu tarayıcı senkronizasyonu: her 30 saniyede otomatik yenile
+                    // (Tarayıcı A veri ekleyince Tarayıcı B 30 saniye içinde görür)
+                    setInterval(() => {
+                        if (!document.hidden && !_cloudLoading && getCloudUrl()) {
+                            cloudLoad();
+                        }
+                    }, 30000);
                 }
             })();
 
